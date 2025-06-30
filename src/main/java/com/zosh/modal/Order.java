@@ -34,6 +34,7 @@ public class Order {
     @ManyToOne
     private Address shippingAddress;
 
+    @Embedded
     private PaymentDetails paymentDetails = new PaymentDetails();
 
     private double totalMrpPrice;
