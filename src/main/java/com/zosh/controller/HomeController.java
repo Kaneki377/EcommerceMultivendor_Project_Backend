@@ -11,6 +11,7 @@ public class HomeController {
     public ApiResponse HomeControllerHandler(){
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setMessage("Weltome to ecommerce multivendor");
+        apiResponse.setMessage("Hello");
         return apiResponse;
     }
 }
