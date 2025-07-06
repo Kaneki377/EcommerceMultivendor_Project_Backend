@@ -30,6 +30,14 @@ public class User {
 
     private String mobile;
 
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "userId"),
+            inverseJoinColumns = @JoinColumn(name = "roleId")
+    )
+    private Set<Role> roles = new HashSet<>();
+
     @OneToMany
     private Set<Address> addresses = new HashSet<>();
 
