@@ -22,13 +22,13 @@ public class Address {
 
     private String locality;
 
-    private String address;
+    private String street;
 
     private String city;
 
     private String state;
 
-    private String pinCode;
+    private String postalCode;
 
     private String mobile;
 }
