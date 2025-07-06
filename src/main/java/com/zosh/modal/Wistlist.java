@@ -12,7 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class WistList {
+public class Wistlist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -14,7 +14,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class PaymentOrder {
+public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

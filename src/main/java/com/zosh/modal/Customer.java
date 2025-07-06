@@ -33,6 +33,11 @@ public class Customer {
     private Set<Address> addresses = new HashSet<>();
 
     @ManyToMany
+    @JoinTable(
+            name = "customer_coupons",
+            joinColumns = @JoinColumn(name = "customerId"),
+            inverseJoinColumns = @JoinColumn(name = "couponId")
+    )
     @JsonIgnore
     private Set<Coupon> usedCoupons = new HashSet<>();
 }
