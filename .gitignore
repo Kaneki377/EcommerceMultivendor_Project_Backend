@@ -32,5 +32,5 @@ build/
 ### VS Code ###
 .vscode/
 
-### application ###
+### application prepwe ###
 src/main/resources/application.properties
