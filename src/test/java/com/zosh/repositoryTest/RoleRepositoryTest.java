@@ -1,7 +1,7 @@
-package com.shopmall.repositoryTest;
+package com.zosh.repositoryTest;
 
-import com.shopmall.model.Role;
-import com.shopmall.repository.RoleRepository;
+import com.zosh.modal.Role;
+import com.zosh.repository.RoleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
