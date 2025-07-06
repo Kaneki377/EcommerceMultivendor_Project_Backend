@@ -20,7 +20,7 @@ public class VerificationCode {
     private String email;
 
     @OneToOne
-    private User user;
+    private Customer customer;
 
     @OneToOne
     private Seller seller;

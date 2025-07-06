@@ -22,8 +22,8 @@ public class RoleRepositoryTest {
 
     @Test
     public void testCreateFirstRole() {
-        Role roleAdmin = new Role("Admin"); //Kiểm tra xem việc tạo một Role có lưu thành công vào DB hay không
-        Role saveRole = repo.save(roleAdmin);
+        Role roleCustomer = new Role("Customer"); //Kiểm tra xem việc tạo một Role có lưu thành công vào DB hay không
+        Role saveRole = repo.save(roleCustomer);
 
         assertThat(saveRole.getId()).isGreaterThan(0);
     }
@@ -34,10 +34,10 @@ public class RoleRepositoryTest {
 
         Role roleShipper = new Role("Shipper");
 
-        Role roleAssistant = new Role("Manager");
+        Role roleManager = new Role("Manager");
 
         Role roleKOC = new Role("KOC");
 
-        repo.saveAll(List.of(roleSeller,roleShipper,roleAssistant,roleKOC));
+        repo.saveAll(List.of(roleSeller,roleShipper,roleManager,roleKOC));
     }
 }

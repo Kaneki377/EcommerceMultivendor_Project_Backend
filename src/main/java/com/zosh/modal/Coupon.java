@@ -32,6 +32,6 @@ public class Coupon {
     private boolean isActive = true;
 
     @ManyToMany(mappedBy = "usedCoupons")
-    private Set<User> usedByUsers = new HashSet<>();
+    private Set<Customer> usedByCustomers = new HashSet<>();
 
 }

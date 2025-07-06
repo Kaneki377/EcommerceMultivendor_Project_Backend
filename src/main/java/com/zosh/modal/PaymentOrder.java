@@ -29,7 +29,7 @@ public class PaymentOrder {
     private String paymentLinkId;
 
     @ManyToOne
-    private User user;
+    private Customer customer;
 
     @OneToMany
     private Set<Order> orders = new HashSet<Order>();

@@ -18,7 +18,7 @@ public class Transaction {
     private Long id;
 
     @ManyToOne
-    private User user;
+    private Customer customer;
 
     @OneToOne
     private Order order;

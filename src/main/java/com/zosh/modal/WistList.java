@@ -19,7 +19,7 @@ public class WistList {
     private Long id;
 
     @OneToOne
-    private User user;
+    private Customer customer;
 
     @ManyToMany
     private Set<Product> products = new HashSet<>();
