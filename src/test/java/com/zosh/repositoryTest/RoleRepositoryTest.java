@@ -1,6 +1,6 @@
 package com.zosh.repositoryTest;
 
-import com.zosh.modal.Role;
+import com.zosh.model.Role;
 import com.zosh.repository.RoleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package com.zosh.modal;
+package com.zosh.model;
 
 import com.zosh.domain.PaymentMethod;
 import com.zosh.domain.PaymentOrderStatus;

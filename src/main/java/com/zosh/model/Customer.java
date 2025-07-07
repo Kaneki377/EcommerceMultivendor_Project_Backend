@@ -1,4 +1,4 @@
-package com.zosh.modal;
+package com.zosh.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -1,4 +1,4 @@
-package com.zosh.modal;
+package com.zosh.model;
 
 import jakarta.persistence.*;
 import lombok.*;

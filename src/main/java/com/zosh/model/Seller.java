@@ -1,7 +1,6 @@
-package com.zosh.modal;
+package com.zosh.model;
 
 import com.zosh.domain.AccountStatus;
-import com.zosh.domain.USER_ROLE;
 import jakarta.persistence.*;
 import lombok.*;
 

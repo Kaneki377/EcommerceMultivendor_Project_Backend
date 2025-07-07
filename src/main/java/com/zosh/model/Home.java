@@ -1,6 +1,5 @@
-package com.zosh.modal;
+package com.zosh.model;
 
-import com.zosh.domain.HomeCategorySection;
 import lombok.Data;
 
 import java.util.List;

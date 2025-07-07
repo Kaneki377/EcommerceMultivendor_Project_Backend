@@ -1,6 +1,6 @@
 package com.zosh.repository;
 
-import com.zosh.modal.Role;
+import com.zosh.model.Role;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

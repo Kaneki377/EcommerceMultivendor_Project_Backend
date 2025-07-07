@@ -1,4 +1,4 @@
-package com.zosh.modal;
+package com.zosh.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,19 +9,14 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class VerificationCode {
+public class Deal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private String otp;
-
-    private String email;
+    private Integer discount;
 
     @OneToOne
-    private Customer customer;
-
-    @OneToOne
-    private Seller seller;
+    private HomeCategory category;
 }

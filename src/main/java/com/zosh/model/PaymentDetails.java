@@ -1,4 +1,4 @@
-package com.zosh.modal;
+package com.zosh.model;
 
 import com.zosh.domain.PaymentStatus;
 import lombok.AllArgsConstructor;
