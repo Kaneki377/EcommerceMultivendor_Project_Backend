@@ -1,4 +1,7 @@
 package com.zosh.config;
 
-public class JwtTokenValidator {
+import jakarta.servlet.Filter;
+
+public class JwtTokenValidator implements Filter {
+
 }
