@@ -1,5 +1,6 @@
 package com.zosh.service.impl;
 
+import com.zosh.exceptions.ProductException;
 import com.zosh.model.Category;
 import com.zosh.model.Product;
 import com.zosh.model.Seller;
@@ -7,12 +8,18 @@ import com.zosh.repository.CategoryRepository;
 import com.zosh.repository.ProductRepository;
 import com.zosh.request.CreateProductRequest;
 import com.zosh.service.ProductService;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
@@ -81,13 +88,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void deleteProduct(Long productId) {
+    public void deleteProduct(Long productId) throws ProductException {
         Product product = findProductById(productId);
         productRepository.delete(product);
     }
 
     @Override
-    public Product updateProduct(Long productId, Product product) {
+    public Product updateProduct(Long productId, Product product) throws ProductException {
         findProductById(productId);
         product.setId(productId);
 
@@ -96,7 +103,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product findProductById(Long productId) {
-        return null;
+        try {
+            return productRepository.findById(productId).orElseThrow(()->
+                    new ProductException("Product not found with id " + productId));
+        } catch (ProductException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -106,6 +118,40 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<Product> getAllProducts(String category, String brand, String colors, String sizes, String minPrice, String maxPrice, Integer minDiscount, String sort, String stock, Integer pageNumber) {
+        Specification<Product> specification = (root, query, criteriaBuilder) ->{
+            List<Predicate> predicates = new ArrayList<>();
+            if(category != null) {
+                Join<Product, Category> categoryJoin = root.join("category");
+                predicates.add(criteriaBuilder.equal(categoryJoin.get("categoryId"), category));
+            }
+
+            if(colors != null && !colors.isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("color"), colors));
+            }
+
+            if(sizes != null && !sizes.isEmpty()) {
+                predicates.add(criteriaBuilder.equal(root.get("size"), sizes));
+            }
+
+            if(minPrice != null){
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("sellingPrice"), minPrice));
+            }
+
+            if(maxPrice != null){
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("sellingPrice"), maxPrice));
+            }
+
+            if(minDiscount != null){
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("discountPercentage"), minDiscount));
+            }
+
+            if(stock != null) {
+                predicates.add(criteriaBuilder.equal(root.get("stock"), stock));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+        };
+
         return null;
     }
 
