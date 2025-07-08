@@ -51,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
+        //Note
         authorities.add(new SimpleGrantedAuthority(
                 USER_ROLE.ROLE_CUSTOMER.toString()));
 

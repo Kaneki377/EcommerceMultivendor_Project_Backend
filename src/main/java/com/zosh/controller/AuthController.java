@@ -1,9 +1,12 @@
 package com.zosh.controller;
 
+import com.zosh.domain.USER_ROLE;
 import com.zosh.model.Customer;
 
 import com.zosh.repository.CustomerRepository;
 import com.zosh.request.SignUpRequest;
+import com.zosh.response.AuthResponse;
+import com.zosh.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,14 +20,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final CustomerRepository customerRepository;
+    private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<Customer> createCustomerHandler(@RequestBody SignUpRequest req) {
-        Customer customer = new Customer();
-        customer.setEmail(req.getEmail());
-        customer.setFullName(req.getFullName());
+    public ResponseEntity<AuthResponse> createCustomerHandler(@RequestBody SignUpRequest req) {
 
-        Customer saveCustomer =  customerRepository.save(customer);
-        return ResponseEntity.ok().body(saveCustomer);
+//        Customer customer = new Customer();
+//        customer.setEmail(req.getEmail());
+//        customer.setFullName(req.getFullName());
+//        Customer saveCustomer =  customerRepository.save(customer);
+
+
+
+        //Tạo Customer bằng jwt token
+        String jwt = authService.createUser(req);
+
+        AuthResponse res = new  AuthResponse();
+        res.setJwt(jwt);
+        res.setMessage("Register successfully !");
+        //res.setRole(USER_ROLE.ROLE_CUSTOMER);
+        return ResponseEntity.ok(res);
     }
 }
