@@ -23,7 +23,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> createCustomerHandler(@RequestBody SignUpRequest req) {
+    public ResponseEntity<AuthResponse> createCustomerHandler(@RequestBody SignUpRequest req) throws Exception {
 
 //        Customer customer = new Customer();
 //        customer.setEmail(req.getEmail());

@@ -4,8 +4,10 @@ import com.zosh.config.JwtProvider;
 import com.zosh.domain.USER_ROLE;
 import com.zosh.model.Cart;
 import com.zosh.model.Customer;
+import com.zosh.model.VerificationCode;
 import com.zosh.repository.CartRepository;
 import com.zosh.repository.CustomerRepository;
+import com.zosh.repository.VerificationCodeRepository;
 import com.zosh.request.SignUpRequest;
 import com.zosh.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +31,42 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final CartRepository cartRepository;
     private final JwtProvider jwtProvider;
+    private final VerificationCodeRepository verificationCodeRepository;
+
+
     @Override
-    public String createUser(SignUpRequest req) {
+    public void sentLoginOtp(String email) throws Exception {
+        String SIGNING_PREFIX="signin_";
+
+        if(email.startsWith(SIGNING_PREFIX)){
+            email=email.substring(SIGNING_PREFIX.length());
+
+            Customer customer = customerRepository.findByEmail(email);
+            if(customer == null){
+                throw new Exception("Customer not exist with provided email");
+            }
+        }
+
+        VerificationCode isExist = verificationCodeRepository.findByEmail(email);
+
+        if(isExist != null){
+            verificationCodeRepository.delete(isExist);
+        }
+
+        String otp =
+    }
+
+    @Override
+    public String createUser(SignUpRequest req) throws Exception {
+
+        String SIGNING_PREFIX = "signin_";
+
+        VerificationCode verificationCode = verificationCodeRepository.findByEmail(req.getEmail());
+
+        if(verificationCode == null || !verificationCode.getOtp().equals(req.getOtp())){
+            throw new Exception("Wrong otp ...");
+        }
+
 
         Customer customer = customerRepository.findByEmail(req.getEmail());
 
