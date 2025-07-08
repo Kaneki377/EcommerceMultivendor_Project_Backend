@@ -45,6 +45,7 @@ public class CustomUserServiceImpl implements UserDetailsService {
 
 
     //Tạo một object UserDetails (Spring Security dùng để xác thực và phân quyền).
+
     private UserDetails buildUserDetails(String email, String password,USER_ROLE role) {
         if (role == null) role = USER_ROLE.ROLE_CUSTOMER;
 

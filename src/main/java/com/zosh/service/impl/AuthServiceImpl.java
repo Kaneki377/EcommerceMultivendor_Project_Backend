@@ -8,8 +8,12 @@ import com.zosh.model.VerificationCode;
 import com.zosh.repository.CartRepository;
 import com.zosh.repository.CustomerRepository;
 import com.zosh.repository.VerificationCodeRepository;
+import com.zosh.request.LoginRequest;
 import com.zosh.request.SignUpRequest;
+import com.zosh.response.AuthResponse;
 import com.zosh.service.AuthService;
+import com.zosh.service.EmailService;
+import com.zosh.utils.OtpUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final CartRepository cartRepository;
     private final JwtProvider jwtProvider;
     private final VerificationCodeRepository verificationCodeRepository;
-
+    private final EmailService emailService;
 
     @Override
     public void sentLoginOtp(String email) throws Exception {
@@ -53,7 +57,17 @@ public class AuthServiceImpl implements AuthService {
             verificationCodeRepository.delete(isExist);
         }
 
-        String otp =
+        String otp = OtpUtil.generateOtp();
+
+        VerificationCode verificationCode = new VerificationCode();
+        verificationCode.setOtp(otp);
+        verificationCode.setEmail(email);
+        verificationCodeRepository.save(verificationCode);
+
+        String subsject = "zosh login/signup otp";
+        String text = "your login/signup otp is - " + otp;
+
+        emailService.sendVerificationOtpEmail(email,otp,subsject,text);
     }
 
     @Override
@@ -97,5 +111,11 @@ public class AuthServiceImpl implements AuthService {
 
         return jwtProvider.generateToken(authentication);
 
+    }
+
+    @Override
+    public AuthResponse signIn(LoginRequest req) {
+
+        return null;
     }
 }

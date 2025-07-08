@@ -3,8 +3,10 @@ package com.zosh.controller;
 import com.zosh.domain.USER_ROLE;
 import com.zosh.model.Customer;
 
+import com.zosh.model.VerificationCode;
 import com.zosh.repository.CustomerRepository;
 import com.zosh.request.SignUpRequest;
+import com.zosh.response.ApiResponse;
 import com.zosh.response.AuthResponse;
 import com.zosh.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +41,21 @@ public class AuthController {
         res.setJwt(jwt);
         res.setMessage("Register successfully !");
         //res.setRole(USER_ROLE.ROLE_CUSTOMER);
+        return ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/sent/login-signup-otp")
+    public ResponseEntity<ApiResponse> createCustomerHandler(
+            @RequestBody VerificationCode req) throws Exception {
+
+        //Tạo Customer bằng jwt token
+        authService.sentLoginOtp(req.getEmail());
+
+        ApiResponse res = new ApiResponse();
+
+        res.setMessage("Otp sent successfully !");
+
+
         return ResponseEntity.ok(res);
     }
 }
