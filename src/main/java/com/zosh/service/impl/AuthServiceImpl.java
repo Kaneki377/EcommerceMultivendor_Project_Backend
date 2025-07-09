@@ -13,7 +13,7 @@ import com.zosh.request.SignUpRequest;
 import com.zosh.response.AuthResponse;
 import com.zosh.service.AuthService;
 import com.zosh.service.EmailService;
-import com.zosh.utils.OtpUtil;
+import com.zosh.utils.OtpUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -61,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
             verificationCodeRepository.delete(isExist);
         }
 
-        String otp = OtpUtil.generateOtp();
+        String otp = OtpUtils.generateOTP();
 
         VerificationCode verificationCode = new VerificationCode();
         verificationCode.setOtp(otp);
@@ -120,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
 
     //xử lý đăng nhập người dùng bằng OTP
     @Override
-    public AuthResponse signIn(LoginRequest req) {
+    public AuthResponse signIn(LoginRequest req) throws Exception {
         String username = req.getEmail();
         String otp = req.getOtp();
 
@@ -143,9 +143,13 @@ public class AuthServiceImpl implements AuthService {
         return authResponse;
     }
 
-    private Authentication authenticate(String username, String otp) {
+    private Authentication authenticate(String username, String otp) throws Exception {
         UserDetails userDetails = customUserService.loadUserByUsername(username);
 
+        String SELLER_PREFIX = "seller_";
+        if(username.startsWith(SELLER_PREFIX)){
+            username=username.substring(SELLER_PREFIX.length());
+        }
         if(userDetails == null){
             throw new BadCredentialsException("Invalid username or password");
         }
@@ -154,7 +158,7 @@ public class AuthServiceImpl implements AuthService {
 
         // verificationCode trong database khác otp user (FE)
         if(verificationCode == null || !verificationCode.getOtp().equals(otp)){
-            throw new BadCredentialsException("Wrong otp !!!");
+            throw new Exception("Wrong otp !!!");
         }
         return new UsernamePasswordAuthenticationToken(
                 userDetails,
