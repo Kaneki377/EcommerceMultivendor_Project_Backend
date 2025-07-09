@@ -5,6 +5,7 @@ import com.zosh.model.Customer;
 
 import com.zosh.model.VerificationCode;
 import com.zosh.repository.CustomerRepository;
+import com.zosh.request.LoginRequest;
 import com.zosh.request.SignUpRequest;
 import com.zosh.response.ApiResponse;
 import com.zosh.response.AuthResponse;
@@ -45,10 +46,10 @@ public class AuthController {
     }
 
     @PostMapping("/sent/login-signup-otp")
-    public ResponseEntity<ApiResponse> createCustomerHandler(
+    public ResponseEntity<ApiResponse> sentOtpHandler(
             @RequestBody VerificationCode req) throws Exception {
 
-        //Tạo Customer bằng jwt token
+
         authService.sentLoginOtp(req.getEmail());
 
         ApiResponse res = new ApiResponse();
@@ -57,5 +58,15 @@ public class AuthController {
 
 
         return ResponseEntity.ok(res);
+    }
+
+    @PostMapping("/signin")
+    public ResponseEntity<AuthResponse> loginHandler(
+            @RequestBody LoginRequest req) throws Exception {
+
+
+        AuthResponse authResponse = authService.signIn(req);
+
+        return ResponseEntity.ok(authResponse);
     }
 }

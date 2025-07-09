@@ -15,15 +15,18 @@ import com.zosh.service.AuthService;
 import com.zosh.service.EmailService;
 import com.zosh.utils.OtpUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -37,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProvider jwtProvider;
     private final VerificationCodeRepository verificationCodeRepository;
     private final EmailService emailService;
+    private final CustomUserServiceImpl customUserService;
 
     @Override
     public void sentLoginOtp(String email) throws Exception {
@@ -113,9 +117,48 @@ public class AuthServiceImpl implements AuthService {
 
     }
 
+
+    //xử lý đăng nhập người dùng bằng OTP
     @Override
     public AuthResponse signIn(LoginRequest req) {
+        String username = req.getEmail();
+        String otp = req.getOtp();
 
-        return null;
+        //Gọi hàm authenticate(...) để xác minh người dùng có tồn tại và OTP có hợp lệ hay không.
+        Authentication authentication = authenticate(username,otp);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        //Tạo JWT token từ thông tin người dùng.
+        String token = jwtProvider.generateToken(authentication);
+
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setJwt(token);
+        authResponse.setMessage("Login successful!");
+
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        String roleName = authorities.isEmpty()?null:authorities.iterator().next().getAuthority();
+
+        //authResponse.setRole(USER_ROLE.valueOf(roleName));
+
+        return authResponse;
+    }
+
+    private Authentication authenticate(String username, String otp) {
+        UserDetails userDetails = customUserService.loadUserByUsername(username);
+
+        if(userDetails == null){
+            throw new BadCredentialsException("Invalid username or password");
+        }
+
+        VerificationCode verificationCode = verificationCodeRepository.findByEmail(username);
+
+        // verificationCode trong database khác otp user (FE)
+        if(verificationCode == null || !verificationCode.getOtp().equals(otp)){
+            throw new BadCredentialsException("Wrong otp !!!");
+        }
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities());
     }
 }
