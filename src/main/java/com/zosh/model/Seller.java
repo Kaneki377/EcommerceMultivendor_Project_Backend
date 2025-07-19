@@ -13,17 +13,20 @@ import lombok.*;
 public class Seller {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String sellerName;
 
     private String mobile;
 
-    @Column(unique = true, nullable = false)
-    private String email;
+    //@Column(unique = true, nullable = false)
+   // private String email;
 
-    private String password;
+    //private String password;
+    @OneToOne(cascade = CascadeType.ALL )
+    @JoinColumn(name = "account_id", unique = true,nullable = false)
+    private Account account;
 
     @Embedded
     private BusinessDetails businessDetails = new BusinessDetails();

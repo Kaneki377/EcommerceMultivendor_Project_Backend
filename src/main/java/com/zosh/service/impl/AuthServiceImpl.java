@@ -2,9 +2,11 @@ package com.zosh.service.impl;
 
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.USER_ROLE;
+import com.zosh.model.Account;
 import com.zosh.model.Cart;
 import com.zosh.model.Customer;
 import com.zosh.model.VerificationCode;
+import com.zosh.repository.AccountRepository;
 import com.zosh.repository.CartRepository;
 import com.zosh.repository.CustomerRepository;
 import com.zosh.repository.VerificationCodeRepository;
@@ -27,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 
@@ -41,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
     private final VerificationCodeRepository verificationCodeRepository;
     private final EmailService emailService;
     private final CustomUserServiceImpl customUserService;
+    private final AccountRepository accountRepository;
 
     @Override
     public void sentLoginOtp(String email) throws Exception {
@@ -89,12 +93,19 @@ public class AuthServiceImpl implements AuthService {
         Customer customer = customerRepository.findByEmail(req.getEmail());
 
         if(customer == null){
+            Account account = new Account();
+            account.setEmail(req.getEmail());
+            account.setPassword(passwordEncoder.encode(req.getOtp()));
+            account.setCreatedAt(new Date());             // thêm dòng này
+            account.setIsEnabled(true);                  // thêm dòng này
+            account = accountRepository.save(account);
+
             Customer createdCustomer = new Customer();
-            createdCustomer.setEmail(req.getEmail());
+            createdCustomer.setAccount(account); // Gán account_id cho customer
             createdCustomer.setFullName(req.getFullName());
             createdCustomer.setMobile("0xxxxxxxxx");
             //createdCustomer.setRole(USER_ROLE.ROLE_CUSTOMER);
-            createdCustomer.setPassword(passwordEncoder.encode(req.getOtp()));
+
 
             customer = customerRepository.save(createdCustomer);
 
@@ -138,7 +149,7 @@ public class AuthServiceImpl implements AuthService {
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         String roleName = authorities.isEmpty()?null:authorities.iterator().next().getAuthority();
 
-        //authResponse.setRole(USER_ROLE.valueOf(roleName));
+        authResponse.setRole(USER_ROLE.valueOf(roleName));
 
         return authResponse;
     }

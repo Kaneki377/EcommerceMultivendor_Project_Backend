@@ -29,10 +29,10 @@ public class CustomUserServiceImpl implements UserDetailsService {
         //Kiểm tra username , Nếu không phải seller, thì xử lý như Customer:
         if(username.startsWith(SELLER_PREFIX)){
             String actualUsername = username.substring(SELLER_PREFIX.length());
-            Seller seller = sellerRepository.findByEmail(actualUsername);
+            Seller seller = sellerRepository.findByAccount_Email(actualUsername);
 
-            if(seller!=null){
-                return buildUserDetails(seller.getEmail(),seller.getPassword(),USER_ROLE.ROLE_SELLER);
+            if(seller !=null){
+                return buildUserDetails(seller.getAccount().getEmail(), seller.getAccount().getPassword(),USER_ROLE.ROLE_SELLER);
             }
         }else{
             Customer customer = customerRepository.findByEmail(username);

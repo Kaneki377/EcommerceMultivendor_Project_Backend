@@ -2,7 +2,6 @@ package com.zosh.controller;
 
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.AccountStatus;
-import com.zosh.domain.USER_ROLE;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.Seller;
 
@@ -14,6 +13,7 @@ import com.zosh.response.AuthResponse;
 import com.zosh.service.AuthService;
 import com.zosh.service.EmailService;
 import com.zosh.service.SellerService;
+import com.zosh.service.VerificationService;
 import com.zosh.utils.OtpUtils;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +28,7 @@ import java.util.List;
 public class SellerController {
     private final SellerService sellerService;
     private final EmailService emailService;
+    private final VerificationService verificationService;
     private final VerificationCodeRepository verificationCodeRepository;
     private final JwtProvider jwtProvider;
     private final AuthService authService;
@@ -65,17 +66,15 @@ public class SellerController {
         Seller savedSeller = sellerService.createSeller(seller);
 
         String otp = OtpUtils.generateOTP();
-        //VerificationCode verificationCode = verificationService.createVerificationCode(otp, seller.getEmail());
-
-        VerificationCode verificationCode = new VerificationCode();
+        VerificationCode verificationCode = verificationService.createVerificationCode(otp, seller.getAccount().getEmail());
         verificationCode.setOtp(otp);
-        verificationCode.setEmail(seller.getEmail());
+        //verificationCode.setEmail(seller.getEmail());
         verificationCodeRepository.save(verificationCode);
 
         String subject = "Zosh Bazaar Email Verification Code";
         String text = "Welcome to Zosh Bazaar, verify your account using this link ";
         String frontend_url = "http://localhost:3000/verify-seller/";
-        emailService.sendVerificationOtpEmail(seller.getEmail(), verificationCode.getOtp(), subject, text + frontend_url);
+        emailService.sendVerificationOtpEmail(seller.getAccount().getEmail(), verificationCode.getOtp(), subject, text + frontend_url);
         return new ResponseEntity<>(savedSeller, HttpStatus.CREATED);
     }
 

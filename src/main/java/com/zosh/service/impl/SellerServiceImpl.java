@@ -9,7 +9,6 @@ import com.zosh.repository.AddressReposity;
 import com.zosh.repository.SellerRepository;
 import com.zosh.service.SellerService;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,24 +22,23 @@ public class SellerServiceImpl implements SellerService {
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
     private final AddressReposity addressReposity;
-    @SneakyThrows
     @Override
-    public Seller getSellerProfile(String jwt) {
+    public Seller getSellerProfile(String jwt) throws Exception {
         String email = jwtProvider.getEmailFromJwtToken(jwt);
         return this.getSellerByEmail(email);
     }
 
     @Override
     public Seller createSeller(Seller seller) throws Exception {
-        Seller sellerExist = sellerRepository.findByEmail(seller.getEmail());
+        Seller sellerExist = sellerRepository.findByAccount_Email(seller.getAccount().getEmail());
         if (sellerExist != null) {
             throw new Exception("Seller already exist, use different email");
         }
         Address savedAdress = addressReposity.save(seller.getPickupAddress());
 
         Seller newSeller = new Seller();
-        newSeller.setEmail(seller.getEmail());
-        newSeller.setPassword(passwordEncoder.encode(seller.getPassword()));
+        newSeller.getAccount().setEmail(seller.getAccount().getEmail());
+        newSeller.getAccount().setPassword(passwordEncoder.encode(seller.getAccount().getPassword()));
         newSeller.setSellerName(seller.getSellerName());
         newSeller.setPickupAddress(seller.getPickupAddress());
         newSeller.setTaxCode(seller.getTaxCode());
@@ -60,10 +58,10 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller getSellerByEmail(String email) throws SellerException {
-        Seller seller = sellerRepository.findByEmail(email);
+    public Seller getSellerByEmail(String email) throws Exception {
+        Seller seller = sellerRepository.findByAccount_Email(email);
         if(seller == null){
-            throw new SellerException("Seller not found ... !");
+            throw new Exception("Seller not found ... !");
         }
         return seller;
     }
@@ -86,8 +84,8 @@ public class SellerServiceImpl implements SellerService {
         if (seller.getMobile() != null) {
             existingSeller.setMobile(seller.getMobile());
         }
-        if (seller.getEmail() != null) {
-            existingSeller.setEmail(seller.getEmail());
+        if (seller.getAccount().getEmail() != null) {
+            existingSeller.getAccount().setEmail(seller.getAccount().getEmail());
         }
 
         if (seller.getBusinessDetails() != null
