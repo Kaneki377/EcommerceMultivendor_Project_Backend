@@ -1,4 +1,4 @@
-package com.zosh.repositoryTest;
+package com.zosh.role;
 
 import com.zosh.model.Role;
 import com.zosh.repository.RoleRepository;

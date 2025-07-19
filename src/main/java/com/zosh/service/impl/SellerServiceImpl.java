@@ -9,6 +9,7 @@ import com.zosh.repository.AddressReposity;
 import com.zosh.repository.SellerRepository;
 import com.zosh.service.SellerService;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +23,9 @@ public class SellerServiceImpl implements SellerService {
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
     private final AddressReposity addressReposity;
+    @SneakyThrows
     @Override
-    public Seller getSellerProfile(String jwt) throws Exception {
+    public Seller getSellerProfile(String jwt) {
         String email = jwtProvider.getEmailFromJwtToken(jwt);
         return this.getSellerByEmail(email);
     }
@@ -58,10 +60,10 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller getSellerByEmail(String email) throws Exception {
+    public Seller getSellerByEmail(String email) throws SellerException {
         Seller seller = sellerRepository.findByEmail(email);
         if(seller == null){
-            throw new Exception("Seller not found ... !");
+            throw new SellerException("Seller not found ... !");
         }
         return seller;
     }
