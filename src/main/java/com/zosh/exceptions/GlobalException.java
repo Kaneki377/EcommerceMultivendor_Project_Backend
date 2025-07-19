@@ -40,5 +40,16 @@ public class GlobalException {
 
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
+    //bắt exception của customer
+    @ExceptionHandler(CustomerException.class)
+    public ResponseEntity<ErrorDetails> handleCustomerException(CustomerException ex, WebRequest request) {
+        System.out.println(">>> GlobalException caught CustomerException: " + ex.getMessage());
+        ErrorDetails errorDetails = new ErrorDetails();
+        errorDetails.setError(ex.getMessage());
+        errorDetails.setDetails(request.getDescription(false));
+        errorDetails.setTimestamp(LocalDateTime.now());
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
 
 }

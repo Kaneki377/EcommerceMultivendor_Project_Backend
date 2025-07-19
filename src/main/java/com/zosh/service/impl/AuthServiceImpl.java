@@ -2,20 +2,16 @@ package com.zosh.service.impl;
 
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.USER_ROLE;
-import com.zosh.model.Account;
-import com.zosh.model.Cart;
-import com.zosh.model.Customer;
-import com.zosh.model.VerificationCode;
-import com.zosh.repository.AccountRepository;
-import com.zosh.repository.CartRepository;
-import com.zosh.repository.CustomerRepository;
-import com.zosh.repository.VerificationCodeRepository;
+import com.zosh.exceptions.CustomerException;
+import com.zosh.model.*;
+import com.zosh.repository.*;
 import com.zosh.request.LoginRequest;
 import com.zosh.request.SignUpRequest;
 import com.zosh.response.AuthResponse;
 import com.zosh.service.AuthService;
 import com.zosh.service.EmailService;
 import com.zosh.utils.OtpUtils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,6 +34,7 @@ import java.util.List;
 public class AuthServiceImpl implements AuthService {
 
     private final CustomerRepository customerRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final CartRepository cartRepository;
     private final JwtProvider jwtProvider;
@@ -53,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
         if(email.startsWith(SIGNING_PREFIX)){
             email=email.substring(SIGNING_PREFIX.length());
 
-            Customer customer = customerRepository.findByEmail(email);
+            Customer customer = customerRepository.findByAccount_Email(email);
             if(customer == null){
                 throw new Exception("Customer not exist with provided email");
             }
@@ -79,38 +76,53 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String createUser(SignUpRequest req) throws Exception {
+    @Transactional
+    public String createUser(SignUpRequest req) throws CustomerException {
 
         String SIGNING_PREFIX = "signin_";
 
         VerificationCode verificationCode = verificationCodeRepository.findByEmail(req.getEmail());
 
+        Account existingAccountUsername = accountRepository.findByUsername(req.getUsername());
+        if (existingAccountUsername != null) {
+            throw new CustomerException("Username đã tồn tại, vui lòng chọn username khác");
+        }
+
         if(verificationCode == null || !verificationCode.getOtp().equals(req.getOtp())){
-            throw new Exception("Wrong otp ...");
+            throw new CustomerException("Wrong otp ...");
         }
 
 
-        Customer customer = customerRepository.findByEmail(req.getEmail());
-
+        // tạo account, customer, cart như thường
+        //Customer customer = customerRepository.findByAccount_Email(req.getEmail());
+        Customer customer = customerRepository.findByAccount_Username(req.getUsername());
         if(customer == null){
             Account account = new Account();
             account.setEmail(req.getEmail());
-            account.setPassword(passwordEncoder.encode(req.getOtp()));
+            account.setPassword(passwordEncoder.encode(req.getPassword()));
             account.setCreatedAt(new Date());             // thêm dòng này
             account.setIsEnabled(true);                  // thêm dòng này
+            account.setUsername(req.getUsername());
+
+            // Gán Role
+            Role role = roleRepository.findByName(USER_ROLE.ROLE_CUSTOMER.name());
+            if (role == null) {
+                throw new CustomerException("Role không tồn tại!");
+            }
+            account.setRole(role);
+
             account = accountRepository.save(account);
 
             Customer createdCustomer = new Customer();
             createdCustomer.setAccount(account); // Gán account_id cho customer
             createdCustomer.setFullName(req.getFullName());
             createdCustomer.setMobile("0xxxxxxxxx");
-            //createdCustomer.setRole(USER_ROLE.ROLE_CUSTOMER);
-
 
             customer = customerRepository.save(createdCustomer);
-
+            //createdCustomer = customerRepository.save(createdCustomer);
             Cart cart = new Cart();
             cart.setCustomer(customer);
+        //cart.setCustomer(createdCustomer);
             cartRepository.save(cart);
         }
 

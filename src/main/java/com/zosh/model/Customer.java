@@ -2,9 +2,11 @@ package com.zosh.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.zosh.domain.Gender;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,15 +22,20 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String email;
-
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String password;
+//    private String email;
+//    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+//    private String password;
 
     private String fullName;
 
     private String mobile;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender")
+    private Gender gender;
+
+    @Column(name = "dob")
+    private LocalDate dob;
     @OneToOne(cascade = CascadeType.ALL )
     @JoinColumn(name = "account_id", unique = true,nullable = false)
     private Account account;

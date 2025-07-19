@@ -22,4 +22,9 @@ public class AccountServiceImpl implements AccountService {
     public Account saveAccount(Account account) {
         return accountRepository.save(account);
     }
+
+    @Override
+    public Account findByUsername(String username) {
+        return accountRepository.findByEmail(username);
+    }
 }

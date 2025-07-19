@@ -1,6 +1,7 @@
 package com.zosh.controller;
 
 import com.zosh.domain.USER_ROLE;
+import com.zosh.exceptions.CustomerException;
 import com.zosh.model.Customer;
 
 import com.zosh.model.VerificationCode;
@@ -10,8 +11,10 @@ import com.zosh.request.SignUpRequest;
 import com.zosh.response.ApiResponse;
 import com.zosh.response.AuthResponse;
 import com.zosh.service.AuthService;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +30,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> createCustomerHandler(@Valid @RequestBody SignUpRequest req) throws Exception {
+    public ResponseEntity<AuthResponse> createCustomerHandler(@Valid @RequestBody SignUpRequest req) throws CustomerException {
 
 //        Customer customer = new Customer();
 //        customer.setEmail(req.getEmail());
@@ -42,7 +45,7 @@ public class AuthController {
         AuthResponse res = new  AuthResponse();
         res.setJwt(jwt);
         res.setMessage("Register successfully !");
-        //res.setRole(USER_ROLE.ROLE_CUSTOMER);
+        res.setRole(USER_ROLE.ROLE_CUSTOMER);
         return ResponseEntity.ok(res);
     }
 

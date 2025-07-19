@@ -23,9 +23,18 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Customer findCustomerByEmail(String email) throws Exception {
-        Customer customer = customerRepository.findByEmail(email);
+        Customer customer = customerRepository.findByAccount_Email(email);
         if(customer == null){
             throw new Exception("User not found with email - " + email);
+        }
+        return customer;
+    }
+
+    @Override
+    public Customer findCustomerByUsername(String username) throws Exception {
+        Customer customer = customerRepository.findByAccount_Username(username);
+        if(customer == null){
+            throw new Exception("User not found with username - " + username);
         }
         return customer;
     }

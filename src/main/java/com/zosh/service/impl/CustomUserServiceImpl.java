@@ -35,9 +35,9 @@ public class CustomUserServiceImpl implements UserDetailsService {
                 return buildUserDetails(seller.getAccount().getEmail(), seller.getAccount().getPassword(),USER_ROLE.ROLE_SELLER);
             }
         }else{
-            Customer customer = customerRepository.findByEmail(username);
+            Customer customer = customerRepository.findByAccount_Email(username);
             if(customer != null){
-                return buildUserDetails(customer.getEmail(),customer.getPassword(),USER_ROLE.ROLE_CUSTOMER);
+                return buildUserDetails(customer.getAccount().getEmail(),customer.getAccount().getPassword(),USER_ROLE.ROLE_CUSTOMER);
             }
         }
         throw new UsernameNotFoundException("Customer or Seller not found with email - " + username);

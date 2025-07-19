@@ -26,7 +26,7 @@ public class Role {
         this.name = name;
     }
 
-    @ManyToMany(mappedBy = "roles")
+    @OneToMany(mappedBy = "role")
     @JsonIgnore
-    private Set<User> users = new HashSet<>();
+    private Set<Account> accounts = new HashSet<>();
 }
