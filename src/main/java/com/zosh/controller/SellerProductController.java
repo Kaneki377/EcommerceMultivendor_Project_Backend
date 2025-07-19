@@ -24,7 +24,7 @@ public class SellerProductController {
 
     @GetMapping()
     public ResponseEntity<List<Product>> getProductBySellerId(
-            @RequestHeader("Authorization") String jwt) throws ProductException {
+            @RequestHeader("Authorization") String jwt) throws Exception {
         Seller seller = sellerService.getSellerProfile(jwt);
 
         List<Product> products = productService.getProductBySellerId(seller.getId());
@@ -36,7 +36,7 @@ public class SellerProductController {
     @PostMapping()
     public ResponseEntity<Product> createProduct(
             @RequestBody CreateProductRequest request,
-            @RequestHeader("Authorization") String jwt) throws ProductException {
+            @RequestHeader("Authorization") String jwt) throws Exception {
         Seller seller = sellerService.getSellerProfile(jwt);
 
         Product product = productService.createProduct(request, seller);

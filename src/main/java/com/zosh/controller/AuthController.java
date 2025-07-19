@@ -10,6 +10,7 @@ import com.zosh.request.SignUpRequest;
 import com.zosh.response.ApiResponse;
 import com.zosh.response.AuthResponse;
 import com.zosh.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +27,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> createCustomerHandler(@RequestBody SignUpRequest req) throws Exception {
+    public ResponseEntity<AuthResponse> createCustomerHandler(@Valid @RequestBody SignUpRequest req) throws Exception {
 
 //        Customer customer = new Customer();
 //        customer.setEmail(req.getEmail());
@@ -47,7 +48,7 @@ public class AuthController {
 
     @PostMapping("/sent/login-signup-otp")
     public ResponseEntity<ApiResponse> sentOtpHandler(
-            @RequestBody VerificationCode req) throws Exception {
+            @Valid @RequestBody VerificationCode req) throws Exception {
 
 
         authService.sentLoginOtp(req.getEmail());

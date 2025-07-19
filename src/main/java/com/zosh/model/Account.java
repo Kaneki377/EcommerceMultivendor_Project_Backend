@@ -1,6 +1,9 @@
 package com.zosh.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.Date;
@@ -18,10 +21,13 @@ public class Account {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "email",unique = true, nullable = false)
+    @Column(name = "email", nullable = false, length = 100)
     private String email;
 
+
     private String password;
+
+    private String username;
 
     private Date createdAt;
 
