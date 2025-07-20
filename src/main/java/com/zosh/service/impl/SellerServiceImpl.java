@@ -24,7 +24,7 @@ public class SellerServiceImpl implements SellerService {
     private final AddressReposity addressReposity;
     @Override
     public Seller getSellerProfile(String jwt) throws Exception {
-        String email = jwtProvider.getEmailFromJwtToken(jwt);
+        String email = jwtProvider.getUsernameFromJwtToken(jwt);
         return this.getSellerByEmail(email);
     }
 

@@ -131,7 +131,7 @@ public class AuthServiceImpl implements AuthService {
                 USER_ROLE.ROLE_CUSTOMER.toString()));
 
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(req.getEmail(), null, authorities);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(req.getUsername(), null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return jwtProvider.generateToken(authentication);

@@ -16,9 +16,9 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Customer findCustomerByJwtToken(String jwt) throws Exception {
-        String email = jwtProvider.getEmailFromJwtToken(jwt);
 
-        return this.findCustomerByEmail(email);
+        String username = jwtProvider.getUsernameFromJwtToken(jwt);
+        return this.findCustomerByUsername(username);
     }
 
     @Override
@@ -34,8 +34,10 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer findCustomerByUsername(String username) throws Exception {
         Customer customer = customerRepository.findByAccount_Username(username);
         if(customer == null){
-            throw new Exception("User not found with username - " + username);
+                throw new Exception("User not found with username - " + username);
         }
         return customer;
     }
+
+
 }
