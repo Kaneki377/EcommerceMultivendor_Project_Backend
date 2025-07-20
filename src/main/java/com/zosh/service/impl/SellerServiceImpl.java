@@ -2,16 +2,21 @@ package com.zosh.service.impl;
 
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.AccountStatus;
+import com.zosh.domain.USER_ROLE;
 import com.zosh.exceptions.SellerException;
+import com.zosh.model.Account;
 import com.zosh.model.Address;
 import com.zosh.model.Seller;
+import com.zosh.repository.AccountRepository;
 import com.zosh.repository.AddressReposity;
+import com.zosh.repository.RoleRepository;
 import com.zosh.repository.SellerRepository;
 import com.zosh.service.SellerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +27,8 @@ public class SellerServiceImpl implements SellerService {
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
     private final AddressReposity addressReposity;
+    private final AccountRepository accountRepository;
+    private final RoleRepository roleRepository;
     @Override
     public Seller getSellerProfile(String jwt) throws Exception {
         String email = jwtProvider.getUsernameFromJwtToken(jwt);
@@ -30,19 +37,33 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     public Seller createSeller(Seller seller) throws Exception {
-        Seller sellerExist = sellerRepository.findByAccount_Email(seller.getAccount().getEmail());
-        if (sellerExist != null) {
-            throw new Exception("Seller already exist, use different email");
+
+        String username = seller.getAccount().getUsername();
+        String email = seller.getAccount().getEmail();
+
+        // Kiểm tra trùng username
+        if (accountRepository.findByUsername(username) != null) {
+            throw new Exception("Username đã tồn tại! Vui lòng dùng username khác");
         }
+
+        // Lưu địa chỉ trước
         Address savedAdress = addressReposity.save(seller.getPickupAddress());
 
+        // 4. Tạo Account mới
+        Account account = new Account();
+        account.setUsername(username);
+        account.setEmail(email);
+        account.setPassword(passwordEncoder.encode(seller.getAccount().getPassword()));
+        account.setRole(roleRepository.findByName(USER_ROLE.ROLE_CUSTOMER.name()));
+        account.setCreatedAt(new Date());
+        account.setIsEnabled(true); // vì cần xác thực OTP
+        account = accountRepository.save(account);
+
         Seller newSeller = new Seller();
-        newSeller.getAccount().setEmail(seller.getAccount().getEmail());
-        newSeller.getAccount().setPassword(passwordEncoder.encode(seller.getAccount().getPassword()));
+        newSeller.setAccount(account);
         newSeller.setSellerName(seller.getSellerName());
         newSeller.setPickupAddress(seller.getPickupAddress());
         newSeller.setTaxCode(seller.getTaxCode());
-        //newSeller.setRole
         newSeller.setBankDetails(seller.getBankDetails());
         newSeller.setBusinessDetails(seller.getBusinessDetails());
         return sellerRepository.save(newSeller);

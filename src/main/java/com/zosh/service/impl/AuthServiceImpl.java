@@ -190,21 +190,39 @@ public class AuthServiceImpl implements AuthService {
     }
     //Xác thực username password
     private Authentication authenticateWithPassword(String username, String rawPassword) throws Exception {
+        // Lấy userDetails từ service
+        UserDetails userDetails = customUserService.loadUserByUsername(username);
 
-        // Tìm account theo username
-        Account account = accountRepository.findByUsername(username);
-        if (account == null || !account.getIsEnabled()) {
-            throw new BadCredentialsException("Username không tồn tại hoặc chưa kích hoạt !");
-        }
-        //Kiểm tra password -> so sánh password mã hóa
-        if (!passwordEncoder.matches(rawPassword, account.getPassword())) {
+        // Ép về Account để lấy password gốc (nếu bạn custom UserDetails), hoặc lấy password từ userDetails
+        String encodedPassword = userDetails.getPassword();
+
+        if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new BadCredentialsException("Sai mật khẩu");
         }
 
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(account.getRole().getName()));
-
-        return new UsernamePasswordAuthenticationToken(account.getUsername(), null, authorities);
+        return new UsernamePasswordAuthenticationToken(
+                userDetails, // Principal
+                null, // Credentials
+                userDetails.getAuthorities() // Roles
+        );
     }
+
+//    private Authentication authenticateWithPassword2(String username, String rawPassword) throws Exception {
+//
+//        // Tìm account theo username
+//        Account account = accountRepository.findByUsername(username);
+//        if (account == null || !account.getIsEnabled()) {
+//            throw new BadCredentialsException("Username không tồn tại hoặc chưa kích hoạt !");
+//        }
+//        //Kiểm tra password -> so sánh password mã hóa
+//        if (!passwordEncoder.matches(rawPassword, account.getPassword())) {
+//            throw new BadCredentialsException("Sai mật khẩu");
+//        }
+//
+//        List<GrantedAuthority> authorities = new ArrayList<>();
+//        authorities.add(new SimpleGrantedAuthority(account.getRole().getName()));
+//
+//        return new UsernamePasswordAuthenticationToken(account.getUsername(), null, authorities);
+//    }
 
 }

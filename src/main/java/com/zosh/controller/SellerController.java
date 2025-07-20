@@ -35,10 +35,10 @@ public class SellerController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginSeller(@RequestBody LoginRequest req) throws Exception {
-        String otp = req.getUsername();
-        String email = req.getPassword();
+        String username = req.getUsername();
+        String password = req.getPassword();
 
-        req.setUsername("seller_" + email);
+        req.setUsername("seller_" + username);
         AuthResponse authResponse = authService.signIn(req);
 
         return ResponseEntity.ok(authResponse);

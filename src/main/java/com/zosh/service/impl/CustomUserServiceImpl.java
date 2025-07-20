@@ -29,29 +29,29 @@ public class CustomUserServiceImpl implements UserDetailsService {
         //Kiểm tra username , Nếu không phải seller, thì xử lý như Customer:
         if(username.startsWith(SELLER_PREFIX)){
             String actualUsername = username.substring(SELLER_PREFIX.length());
-            Seller seller = sellerRepository.findByAccount_Email(actualUsername);
+            Seller seller = sellerRepository.findByAccount_Username(actualUsername);
 
             if(seller !=null){
-                return buildUserDetails(seller.getAccount().getEmail(), seller.getAccount().getPassword(),USER_ROLE.ROLE_SELLER);
+                return buildUserDetails(seller.getAccount().getUsername(), seller.getAccount().getPassword(),USER_ROLE.ROLE_SELLER);
             }
         }else{
-            Customer customer = customerRepository.findByAccount_Email(username);
+            Customer customer = customerRepository.findByAccount_Username(username);
             if(customer != null){
-                return buildUserDetails(customer.getAccount().getEmail(),customer.getAccount().getPassword(),USER_ROLE.ROLE_CUSTOMER);
+                return buildUserDetails(customer.getAccount().getUsername(),customer.getAccount().getPassword(),USER_ROLE.ROLE_CUSTOMER);
             }
         }
-        throw new UsernameNotFoundException("Customer or Seller not found with email - " + username);
+        throw new UsernameNotFoundException("Customer or Seller not found with username - " + username);
     }
 
 
     //Tạo một object UserDetails (Spring Security dùng để xác thực và phân quyền).
 
-    private UserDetails buildUserDetails(String email, String password,USER_ROLE role) {
+    private UserDetails buildUserDetails(String username, String password,USER_ROLE role) {
         if (role == null) role = USER_ROLE.ROLE_CUSTOMER;
 
         List<GrantedAuthority> authorityList = new ArrayList<>();
         authorityList.add(new SimpleGrantedAuthority(role.toString()));
 
-        return new org.springframework.security.core.userdetails.User(email, password, authorityList);
+        return new org.springframework.security.core.userdetails.User(username, password, authorityList);
     }
 }
