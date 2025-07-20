@@ -66,7 +66,7 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<AuthResponse> loginHandler(
-            @RequestBody LoginRequest req) throws Exception {
+            @Valid @RequestBody LoginRequest req) throws Exception {
 
 
         AuthResponse authResponse = authService.signIn(req);
