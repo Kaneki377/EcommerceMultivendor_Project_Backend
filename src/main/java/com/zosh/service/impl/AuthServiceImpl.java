@@ -5,6 +5,7 @@ import com.zosh.domain.USER_ROLE;
 import com.zosh.exceptions.CustomerException;
 import com.zosh.model.*;
 import com.zosh.repository.*;
+import com.zosh.request.CustomerSignUpRequest;
 import com.zosh.request.LoginRequest;
 import com.zosh.request.SignUpRequest;
 import com.zosh.response.AuthResponse;
@@ -77,32 +78,32 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public String createUser(SignUpRequest req) throws CustomerException {
+    public String createUser(CustomerSignUpRequest req) throws CustomerException {
 
         String SIGNING_PREFIX = "signin_";
 
-        VerificationCode verificationCode = verificationCodeRepository.findByEmail(req.getEmail());
+        VerificationCode verificationCode = verificationCodeRepository.findByEmail(req.getAccount().getEmail());
 
-        Account existingAccountUsername = accountRepository.findByUsername(req.getUsername());
+        Account existingAccountUsername = accountRepository.findByUsername(req.getAccount().getUsername());
         if (existingAccountUsername != null) {
             throw new CustomerException("Username đã tồn tại, vui lòng chọn username khác");
         }
 
-        if(verificationCode == null || !verificationCode.getOtp().equals(req.getOtp())){
+        if(verificationCode == null || !verificationCode.getOtp().equals(req.getAccount().getOtp())){
             throw new CustomerException("Wrong otp ...");
         }
 
 
         // tạo account, customer, cart như thường
         //Customer customer = customerRepository.findByAccount_Email(req.getEmail());
-        Customer customer = customerRepository.findByAccount_Username(req.getUsername());
+        Customer customer = customerRepository.findByAccount_Username(req.getAccount().getUsername());
         if(customer == null){
             Account account = new Account();
-            account.setEmail(req.getEmail());
-            account.setPassword(passwordEncoder.encode(req.getPassword()));
+            account.setEmail(req.getAccount().getEmail());
+            account.setPassword(passwordEncoder.encode(req.getAccount().getPassword()));
             account.setCreatedAt(new Date());             // thêm dòng này
             account.setIsEnabled(true);                  // thêm dòng này
-            account.setUsername(req.getUsername());
+            account.setUsername(req.getAccount().getUsername());
 
             // Gán Role
             Role role = roleRepository.findByName(USER_ROLE.ROLE_CUSTOMER.name());
@@ -131,7 +132,7 @@ public class AuthServiceImpl implements AuthService {
                 USER_ROLE.ROLE_CUSTOMER.toString()));
 
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(req.getUsername(), null, authorities);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(req.getAccount().getUsername(), null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return jwtProvider.generateToken(authentication);

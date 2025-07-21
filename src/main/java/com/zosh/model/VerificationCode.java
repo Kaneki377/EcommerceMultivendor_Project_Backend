@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.util.Date;
+
 @Entity
 @Getter
 @Setter
@@ -23,6 +25,12 @@ public class VerificationCode {
     private String username;
 
     private String email;
+
+//    @Temporal(TemporalType.TIMESTAMP)
+//    private Date createdAt;
+//
+//    @Temporal(TemporalType.TIMESTAMP)
+//    private Date expiresAt;
 
     @OneToOne
     private Customer customer;

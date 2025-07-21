@@ -41,6 +41,8 @@ public class Seller {
 
     private boolean isEmailVerified = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_status")
     private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
 
 }

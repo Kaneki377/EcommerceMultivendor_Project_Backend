@@ -11,6 +11,7 @@ import com.zosh.repository.AccountRepository;
 import com.zosh.repository.AddressReposity;
 import com.zosh.repository.RoleRepository;
 import com.zosh.repository.SellerRepository;
+import com.zosh.request.SellerSignUpRequest;
 import com.zosh.service.SellerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,7 +37,9 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller createSeller(Seller seller) throws Exception {
+    public Seller createSeller(SellerSignUpRequest req) throws Exception {
+    // Convert từ req sang Seller + Account + BusinessDetail + BankDetail + Address
+        Seller seller = new Seller();
 
         String username = seller.getAccount().getUsername();
         String email = seller.getAccount().getEmail();
@@ -56,7 +59,7 @@ public class SellerServiceImpl implements SellerService {
         account.setPassword(passwordEncoder.encode(seller.getAccount().getPassword()));
         account.setRole(roleRepository.findByName(USER_ROLE.ROLE_SELLER.name()));
         account.setCreatedAt(new Date());
-        account.setIsEnabled(true); // vì cần xác thực OTP
+        account.setIsEnabled(true);
         account = accountRepository.save(account);
 
         Seller newSeller = new Seller();
@@ -180,7 +183,11 @@ public class SellerServiceImpl implements SellerService {
         if (seller == null) {
             throw new SellerException("Không tìm thấy seller.");
         }
-        seller.getAccount().setIsEnabled(true);
+        //note
+        if (seller.getAccountStatus() == AccountStatus.PENDING_VERIFICATION) {
+            seller.setAccountStatus(AccountStatus.ACTIVE);
+        }
+
         seller.setEmailVerified(true);
         return sellerRepository.save(seller);
     }

@@ -3,11 +3,10 @@ package com.zosh.controller;
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.AccountStatus;
 import com.zosh.exceptions.SellerException;
-import com.zosh.model.Seller;
+import com.zosh.model.*;
 
-import com.zosh.model.VerificationCode;
 import com.zosh.repository.VerificationCodeRepository;
-import com.zosh.request.LoginRequest;
+import com.zosh.request.*;
 
 import com.zosh.response.AuthResponse;
 import com.zosh.service.AuthService;
@@ -16,6 +15,7 @@ import com.zosh.service.SellerService;
 import com.zosh.service.VerificationService;
 import com.zosh.utils.OtpUtils;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,15 +56,15 @@ public class SellerController {
         }
 
         Seller seller = sellerService.verifyEmail(verificationCode.getUsername(), otp);
-
+        verificationCodeRepository.delete(verificationCode);
         return new ResponseEntity<>(seller, HttpStatus.OK);
     }
 
 
     @PostMapping
-    public ResponseEntity<Seller> createSeller(@RequestBody Seller seller) throws Exception {
-        //lưu seller vào db
-        Seller savedSeller = sellerService.createSeller(seller);
+    public ResponseEntity<Seller> createSeller(@Valid @RequestBody SellerSignUpRequest req) throws Exception {
+        // lưu seller vào DB
+        Seller savedSeller = sellerService.createSeller(req);
 
         String otp = OtpUtils.generateOTP();
         String username = savedSeller.getAccount().getUsername();
@@ -75,7 +75,8 @@ public class SellerController {
         String subject = "Zosh Bazaar Email Verification Code";
         String text = "Welcome to Zosh Bazaar, verify your account using this link ";
         String frontend_url = "http://localhost:3000/verify-seller/";
-        emailService.sendVerificationOtpEmail(seller.getAccount().getEmail(), verificationCode.getOtp(), subject, text + frontend_url);
+        emailService.sendVerificationOtpEmail(email, verificationCode.getOtp(), subject, text + frontend_url);
+
         return new ResponseEntity<>(savedSeller, HttpStatus.CREATED);
     }
 

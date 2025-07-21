@@ -16,11 +16,7 @@ public class SignUpRequest {
 
     @NotBlank(message = "Password không được để trống")
     @Size(min = 6, message = "Mật khẩu phải ít nhất 6 ký tự")
-
     private String password;
-
-    @NotBlank(message = "Họ tên không được để trống")
-    private String fullName;
 
     private String otp;
 }

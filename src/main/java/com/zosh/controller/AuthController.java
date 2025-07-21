@@ -6,6 +6,7 @@ import com.zosh.model.Customer;
 
 import com.zosh.model.VerificationCode;
 import com.zosh.repository.CustomerRepository;
+import com.zosh.request.CustomerSignUpRequest;
 import com.zosh.request.LoginRequest;
 import com.zosh.request.SignUpRequest;
 import com.zosh.response.ApiResponse;
@@ -30,7 +31,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> createCustomerHandler(@Valid @RequestBody SignUpRequest req) throws CustomerException {
+    public ResponseEntity<AuthResponse> createCustomerHandler(@Valid @RequestBody CustomerSignUpRequest req) throws CustomerException {
 
 //        Customer customer = new Customer();
 //        customer.setEmail(req.getEmail());

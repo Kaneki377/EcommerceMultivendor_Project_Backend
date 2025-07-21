@@ -4,13 +4,14 @@ import com.zosh.domain.AccountStatus;
 import com.zosh.exceptions.ProductException;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.Seller;
+import com.zosh.request.SellerSignUpRequest;
 
 import java.util.List;
 
 public interface SellerService {
 
     Seller getSellerProfile(String jwt) throws Exception;
-    Seller createSeller(Seller seller) throws Exception;
+    Seller createSeller(SellerSignUpRequest req) throws Exception;
     Seller getSellerById(Long id) throws Exception;
     //Seller getSellerByEmail(String email) throws Exception;
     Seller getSellerByUsername(String username) throws Exception;
