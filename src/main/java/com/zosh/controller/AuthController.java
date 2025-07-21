@@ -52,7 +52,7 @@ public class AuthController {
 
     @PostMapping("/sent/login-signup-otp")
     public ResponseEntity<ApiResponse> sentOtpHandler(
-            @Valid @RequestBody VerificationCode req) throws Exception {
+            @RequestBody VerificationCode req) throws Exception {
 
 
         authService.sentLoginOtp(req.getEmail());

@@ -26,11 +26,11 @@ public class VerificationCode {
 
     private String email;
 
-//    @Temporal(TemporalType.TIMESTAMP)
-//    private Date createdAt;
-//
-//    @Temporal(TemporalType.TIMESTAMP)
-//    private Date expiresAt;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date expiresAt;
 
     @OneToOne
     private Customer customer;

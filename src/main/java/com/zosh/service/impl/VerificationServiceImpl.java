@@ -5,6 +5,9 @@ import com.zosh.repository.VerificationCodeRepository;
 import com.zosh.service.VerificationService;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
+import java.util.Date;
+
 @Service
 public class VerificationServiceImpl implements VerificationService {
 
@@ -29,6 +32,14 @@ public class VerificationServiceImpl implements VerificationService {
         verificationCode.setUsername(username);
         verificationCode.setEmail(email); // <-- Lưu lại để gửi mail
 
+        // Gán thời gian tạo và thời gian hết hạn
+        Date now = new Date();
+        verificationCode.setCreatedAt(now);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(now);
+        calendar.add(Calendar.MINUTE, 10); // OTP hết hạn sau 10 phút
+        verificationCode.setExpiresAt(calendar.getTime());
         return verificationCodeRepository.save(verificationCode);
 
     }

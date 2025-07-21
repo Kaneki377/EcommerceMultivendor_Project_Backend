@@ -3,6 +3,7 @@ package com.zosh.service.impl;
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.USER_ROLE;
 import com.zosh.exceptions.CustomerException;
+import com.zosh.exceptions.SellerException;
 import com.zosh.model.*;
 import com.zosh.repository.*;
 import com.zosh.request.CustomerSignUpRequest;
@@ -211,23 +212,4 @@ public class AuthServiceImpl implements AuthService {
                 userDetails.getAuthorities() // Roles
         );
     }
-
-//    private Authentication authenticateWithPassword2(String username, String rawPassword) throws Exception {
-//
-//        // Tìm account theo username
-//        Account account = accountRepository.findByUsername(username);
-//        if (account == null || !account.getIsEnabled()) {
-//            throw new BadCredentialsException("Username không tồn tại hoặc chưa kích hoạt !");
-//        }
-//        //Kiểm tra password -> so sánh password mã hóa
-//        if (!passwordEncoder.matches(rawPassword, account.getPassword())) {
-//            throw new BadCredentialsException("Sai mật khẩu");
-//        }
-//
-//        List<GrantedAuthority> authorities = new ArrayList<>();
-//        authorities.add(new SimpleGrantedAuthority(account.getRole().getName()));
-//
-//        return new UsernamePasswordAuthenticationToken(account.getUsername(), null, authorities);
-//    }
-
 }

@@ -20,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -54,7 +56,11 @@ public class SellerController {
         if (verificationCode == null || !verificationCode.getOtp().equals(otp)) {
             throw new SellerException("wrong otp...");
         }
-
+        // Kiểm tra xem OTP đã hết hạn chưa
+        if (verificationCode.getExpiresAt().before(new Date())) {
+            verificationCodeRepository.delete(verificationCode); // Xoá luôn nếu hết hạn
+            throw new SellerException("OTP is expired...");
+        }
         Seller seller = sellerService.verifyEmail(verificationCode.getUsername(), otp);
         verificationCodeRepository.delete(verificationCode);
         return new ResponseEntity<>(seller, HttpStatus.OK);
@@ -73,7 +79,7 @@ public class SellerController {
         VerificationCode verificationCode = verificationService.createVerificationCode(otp,username,email);
 
         String subject = "Zosh Bazaar Email Verification Code";
-        String text = "Welcome to Zosh Bazaar, verify your account using this link ";
+        String text = "Welcome to Zosh Bazaar, verify your account using this link , link will expire after 10 minutes !";
         String frontend_url = "http://localhost:3000/verify-seller/";
         emailService.sendVerificationOtpEmail(email, verificationCode.getOtp(), subject, text + frontend_url);
 
