@@ -11,7 +11,7 @@ import javax.swing.*;
 
 public interface AuthService {
 
-    void sentLoginOtp(String email) throws Exception;
+    void sentSignUpOtp(String email) throws Exception;
     String createUser(CustomerSignUpRequest req) throws CustomerException;
     AuthResponse signIn(LoginRequest req) throws Exception;
 }

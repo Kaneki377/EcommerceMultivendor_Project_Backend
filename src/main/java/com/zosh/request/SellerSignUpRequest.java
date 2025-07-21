@@ -26,6 +26,10 @@ public class SellerSignUpRequest {
     @NotNull(message = "Địa chỉ lấy hàng không được để trống")
     private AddressRequest pickupAddress;
 
+    @NotBlank(message = "Mã số thuế lấy hàng không được để trống")
     private String taxCode;
+
+    @NotBlank(message = "Số điện thoại lấy hàng không được để trống")
+    private String mobile;
 }
 

@@ -55,7 +55,7 @@ public class AuthController {
             @RequestBody VerificationCode req) throws Exception {
 
 
-        authService.sentLoginOtp(req.getEmail());
+        authService.sentSignUpOtp(req.getEmail());
 
         ApiResponse res = new ApiResponse();
 

@@ -4,6 +4,7 @@ import com.zosh.config.JwtProvider;
 import com.zosh.domain.AccountStatus;
 import com.zosh.domain.USER_ROLE;
 import com.zosh.exceptions.SellerException;
+import com.zosh.mapper.SellerMapper;
 import com.zosh.model.Account;
 import com.zosh.model.Address;
 import com.zosh.model.Seller;
@@ -39,24 +40,24 @@ public class SellerServiceImpl implements SellerService {
     @Override
     public Seller createSeller(SellerSignUpRequest req) throws Exception {
     // Convert từ req sang Seller + Account + BusinessDetail + BankDetail + Address
-        Seller seller = new Seller();
+        // 1. Lấy username và email từ request
+        String username = req.getAccount().getUsername();
+        String email = req.getAccount().getEmail();
 
-        String username = seller.getAccount().getUsername();
-        String email = seller.getAccount().getEmail();
-
-        // Kiểm tra trùng username
+        // 2. Kiểm tra trùng username
         if (accountRepository.findByUsername(username) != null) {
             throw new Exception("Username đã tồn tại! Vui lòng dùng username khác");
         }
 
-        // Lưu địa chỉ trước
-        Address savedAdress = addressReposity.save(seller.getPickupAddress());
+        // 3. Lưu địa chỉ nhận hàng
+        Address pickupAddress = SellerMapper.toAddress(req.getPickupAddress());
+        Address savedAddress = addressReposity.save(pickupAddress);
 
         // 4. Tạo Account mới
         Account account = new Account();
         account.setUsername(username);
         account.setEmail(email);
-        account.setPassword(passwordEncoder.encode(seller.getAccount().getPassword()));
+        account.setPassword(passwordEncoder.encode(req.getAccount().getPassword()));
         account.setRole(roleRepository.findByName(USER_ROLE.ROLE_SELLER.name()));
         account.setCreatedAt(new Date());
         account.setIsEnabled(true);
@@ -64,12 +65,12 @@ public class SellerServiceImpl implements SellerService {
 
         Seller newSeller = new Seller();
         newSeller.setAccount(account);
-        newSeller.setSellerName(seller.getSellerName());
-        newSeller.setMobile(seller.getMobile());
-        newSeller.setPickupAddress(savedAdress);
-        newSeller.setTaxCode(seller.getTaxCode());
-        newSeller.setBankDetails(seller.getBankDetails());
-        newSeller.setBusinessDetails(seller.getBusinessDetails());
+        newSeller.setSellerName(req.getSellerName());
+        newSeller.setMobile(req.getMobile());
+        newSeller.setPickupAddress(savedAddress);
+        newSeller.setTaxCode(req.getTaxCode());
+        newSeller.setBankDetails(SellerMapper.toBankDetails(req.getBankDetails()));
+        newSeller.setBusinessDetails(SellerMapper.toBusinessDetails(req.getBusinessDetails()));
         return sellerRepository.save(newSeller);
     }
 

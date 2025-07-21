@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
     private final AccountRepository accountRepository;
 
     @Override
-    public void sentLoginOtp(String email) throws Exception {
+    public void sentSignUpOtp(String email) throws Exception {
         String SIGNING_PREFIX="signin_";
 
         if(email.startsWith(SIGNING_PREFIX)){
