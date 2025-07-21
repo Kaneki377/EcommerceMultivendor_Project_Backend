@@ -4,5 +4,7 @@ import com.zosh.model.VerificationCode;
 
 public interface VerificationService {
 
-    VerificationCode createVerificationCode(String otp, String email);
+    VerificationCode createVerificationCode(String otp, String username, String email);
+    VerificationCode findByUsername(String username);
+
 }

@@ -31,8 +31,8 @@ public class SellerServiceImpl implements SellerService {
     private final RoleRepository roleRepository;
     @Override
     public Seller getSellerProfile(String jwt) throws Exception {
-        String email = jwtProvider.getUsernameFromJwtToken(jwt);
-        return this.getSellerByEmail(email);
+        String username = jwtProvider.getUsernameFromJwtToken(jwt);
+        return this.getSellerByUsername(username);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class SellerServiceImpl implements SellerService {
         account.setUsername(username);
         account.setEmail(email);
         account.setPassword(passwordEncoder.encode(seller.getAccount().getPassword()));
-        account.setRole(roleRepository.findByName(USER_ROLE.ROLE_CUSTOMER.name()));
+        account.setRole(roleRepository.findByName(USER_ROLE.ROLE_SELLER.name()));
         account.setCreatedAt(new Date());
         account.setIsEnabled(true); // vì cần xác thực OTP
         account = accountRepository.save(account);
@@ -62,7 +62,8 @@ public class SellerServiceImpl implements SellerService {
         Seller newSeller = new Seller();
         newSeller.setAccount(account);
         newSeller.setSellerName(seller.getSellerName());
-        newSeller.setPickupAddress(seller.getPickupAddress());
+        newSeller.setMobile(seller.getMobile());
+        newSeller.setPickupAddress(savedAdress);
         newSeller.setTaxCode(seller.getTaxCode());
         newSeller.setBankDetails(seller.getBankDetails());
         newSeller.setBusinessDetails(seller.getBusinessDetails());
@@ -78,9 +79,18 @@ public class SellerServiceImpl implements SellerService {
         throw new SellerException("Seller not found");
     }
 
+//    @Override
+//    public Seller getSellerByEmail(String email) throws Exception {
+//        Seller seller = sellerRepository.findByAccount_Email(email);
+//        if(seller == null){
+//            throw new Exception("Seller not found ... !");
+//        }
+//        return seller;
+//    }
+
     @Override
-    public Seller getSellerByEmail(String email) throws Exception {
-        Seller seller = sellerRepository.findByAccount_Email(email);
+    public Seller getSellerByUsername(String username) throws Exception {
+        Seller seller = sellerRepository.findByAccount_Username(username);
         if(seller == null){
             throw new Exception("Seller not found ... !");
         }
@@ -165,8 +175,12 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller verifyEmail(String email, String otp) throws Exception {
-        Seller seller = this.getSellerByEmail(email);
+    public Seller verifyEmail(String username, String otp) throws Exception {
+        Seller seller = this.getSellerByUsername(username);
+        if (seller == null) {
+            throw new SellerException("Không tìm thấy seller.");
+        }
+        seller.getAccount().setIsEnabled(true);
         seller.setEmailVerified(true);
         return sellerRepository.save(seller);
     }

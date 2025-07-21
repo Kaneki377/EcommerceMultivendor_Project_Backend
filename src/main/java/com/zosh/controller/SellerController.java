@@ -38,7 +38,7 @@ public class SellerController {
         String username = req.getUsername();
         String password = req.getPassword();
 
-        req.setUsername("seller_" + username);
+        req.setUsername(username);
         AuthResponse authResponse = authService.signIn(req);
 
         return ResponseEntity.ok(authResponse);
@@ -55,7 +55,7 @@ public class SellerController {
             throw new SellerException("wrong otp...");
         }
 
-        Seller seller = sellerService.verifyEmail(verificationCode.getEmail(), otp);
+        Seller seller = sellerService.verifyEmail(verificationCode.getUsername(), otp);
 
         return new ResponseEntity<>(seller, HttpStatus.OK);
     }
@@ -63,13 +63,14 @@ public class SellerController {
 
     @PostMapping
     public ResponseEntity<Seller> createSeller(@RequestBody Seller seller) throws Exception {
+        //lưu seller vào db
         Seller savedSeller = sellerService.createSeller(seller);
 
         String otp = OtpUtils.generateOTP();
-        VerificationCode verificationCode = verificationService.createVerificationCode(otp, seller.getAccount().getEmail());
-        verificationCode.setOtp(otp);
-        //verificationCode.setEmail(seller.getEmail());
-        verificationCodeRepository.save(verificationCode);
+        String username = savedSeller.getAccount().getUsername();
+        String email = savedSeller.getAccount().getEmail();
+
+        VerificationCode verificationCode = verificationService.createVerificationCode(otp,username,email);
 
         String subject = "Zosh Bazaar Email Verification Code";
         String text = "Welcome to Zosh Bazaar, verify your account using this link ";

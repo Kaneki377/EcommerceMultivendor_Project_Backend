@@ -16,18 +16,25 @@ public class VerificationServiceImpl implements VerificationService {
     }
 
     @Override
-    public VerificationCode createVerificationCode(String otp,String email) {
-        VerificationCode isExist=verificationCodeRepository.findByEmail(email);
+    public VerificationCode createVerificationCode(String otp,String username, String email) {
+        VerificationCode isExist=verificationCodeRepository.findByUsername(username);
 
+        // // Xoá bản cũ nếu có
         if(isExist!=null) {
             verificationCodeRepository.delete(isExist);
         }
 
         VerificationCode verificationCode=new VerificationCode();
         verificationCode.setOtp(otp);
-        verificationCode.setEmail(email);
+        verificationCode.setUsername(username);
+        verificationCode.setEmail(email); // <-- Lưu lại để gửi mail
 
         return verificationCodeRepository.save(verificationCode);
 
+    }
+
+    @Override
+    public VerificationCode findByUsername(String username) {
+        return verificationCodeRepository.findByUsername(username);
     }
 }

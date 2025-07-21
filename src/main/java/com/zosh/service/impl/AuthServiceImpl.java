@@ -146,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
         String password = req.getPassword();
 
 
-        //Gọi hàm authenticate(...) để xác minh người dùng có tồn tại và username/password có hợp lệ hay không.
+        //Gọi hàm authenticateWithPassword(...) để xác minh người dùng có tồn tại và username/password có hợp lệ hay không.
         //Authentication authentication = authenticate(username,password);
         Authentication authentication = authenticateWithPassword(username, password);
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -169,10 +169,10 @@ public class AuthServiceImpl implements AuthService {
     private Authentication authenticate(String username, String otp) throws Exception {
         UserDetails userDetails = customUserService.loadUserByUsername(username);
 
-        String SELLER_PREFIX = "seller_";
-        if(username.startsWith(SELLER_PREFIX)){
-            username=username.substring(SELLER_PREFIX.length());
-        }
+//        String SELLER_PREFIX = "seller_";
+//        if(username.startsWith(SELLER_PREFIX)){
+//            username=username.substring(SELLER_PREFIX.length());
+//        }
         if(userDetails == null){
             throw new BadCredentialsException("Invalid username or password");
         }
@@ -192,6 +192,10 @@ public class AuthServiceImpl implements AuthService {
     private Authentication authenticateWithPassword(String username, String rawPassword) throws Exception {
         // Lấy userDetails từ service
         UserDetails userDetails = customUserService.loadUserByUsername(username);
+
+        if (userDetails == null) {
+            throw new BadCredentialsException("Tài khoản không tồn tại");
+        }
 
         // Ép về Account để lấy password gốc (nếu bạn custom UserDetails), hoặc lấy password từ userDetails
         String encodedPassword = userDetails.getPassword();
