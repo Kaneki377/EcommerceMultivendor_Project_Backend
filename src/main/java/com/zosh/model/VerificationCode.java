@@ -21,7 +21,6 @@ public class VerificationCode {
 
     private String otp;
 
-    @Column(nullable = false)
     private String username;
 
     private String email;
