@@ -43,7 +43,7 @@ public class CartController {
         return new ResponseEntity<Cart>(cart, HttpStatus.OK);
     }
 
-    @PostMapping("/add")
+    @PutMapping("/add")
     public ResponseEntity<CartItem> addItemToCart(
             @RequestBody AddItemRequest request,
             @RequestHeader("Authorization") String jwt
@@ -90,6 +90,6 @@ public class CartController {
                     customer.getId(), cartItemId, cartItem);
         }
 
-        return new  ResponseEntity<>(updatedCartItem, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(updatedCartItem, HttpStatus.ACCEPTED);
     }
 }
