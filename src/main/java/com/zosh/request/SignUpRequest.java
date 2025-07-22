@@ -12,6 +12,7 @@ public class SignUpRequest {
     private String email;
 
     @NotBlank(message = "Username không được để trống")
+    @Size(max = 50, message = "Username không được vượt quá 50 ký tự")
     private String username;
 
     @NotBlank(message = "Password không được để trống")

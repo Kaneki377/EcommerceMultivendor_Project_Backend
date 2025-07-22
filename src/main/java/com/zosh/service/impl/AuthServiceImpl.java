@@ -81,22 +81,23 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public String createUser(CustomerSignUpRequest req) throws CustomerException {
 
-        String SIGNING_PREFIX = "signin_";
-
         VerificationCode verificationCode = verificationCodeRepository.findByEmail(req.getAccount().getEmail());
 
         Account existingAccountUsername = accountRepository.findByUsername(req.getAccount().getUsername());
         if (existingAccountUsername != null) {
-            throw new CustomerException("Username đã tồn tại, vui lòng chọn username khác");
+            throw new CustomerException("Username đã tồn tại, vui lòng chọn username khác !");
         }
-
+        Account existingAccountEmail = accountRepository.findByEmail(req.getAccount().getEmail());
+        if (existingAccountEmail != null) {
+            throw new CustomerException("Email đã tồn tại, vui lòng chọn username khác !");
+        }
         if(verificationCode == null || !verificationCode.getOtp().equals(req.getAccount().getOtp())){
             throw new CustomerException("Wrong otp ...");
         }
 
 
         // tạo account, customer, cart như thường
-        //Customer customer = customerRepository.findByAccount_Email(req.getEmail());
+
         Customer customer = customerRepository.findByAccount_Username(req.getAccount().getUsername());
         if(customer == null){
             Account account = new Account();
@@ -149,8 +150,10 @@ public class AuthServiceImpl implements AuthService {
 
 
         //Gọi hàm authenticateWithPassword(...) để xác minh người dùng có tồn tại và username/password có hợp lệ hay không.
-        //Authentication authentication = authenticate(username,password);
+
         Authentication authentication = authenticateWithPassword(username, password);
+
+        //Thông báo với Spring Security: “Người dùng này đã đăng nhập thành công”
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         //Tạo JWT token từ thông tin người dùng.
@@ -171,10 +174,6 @@ public class AuthServiceImpl implements AuthService {
     private Authentication authenticate(String username, String otp) throws Exception {
         UserDetails userDetails = customUserService.loadUserByUsername(username);
 
-//        String SELLER_PREFIX = "seller_";
-//        if(username.startsWith(SELLER_PREFIX)){
-//            username=username.substring(SELLER_PREFIX.length());
-//        }
         if(userDetails == null){
             throw new BadCredentialsException("Invalid username or password");
         }

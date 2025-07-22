@@ -19,7 +19,7 @@ public class Account {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "email", nullable = false, length = 100)
+    @Column(name = "email", nullable = false, length = 100,unique = true)
     private String email;
 
 

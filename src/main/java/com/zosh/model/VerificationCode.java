@@ -31,9 +31,5 @@ public class VerificationCode {
     @Temporal(TemporalType.TIMESTAMP)
     private Date expiresAt;
 
-    @OneToOne
-    private Customer customer;
-
-    @OneToOne
-    private Seller seller;
+    private String role;
 }

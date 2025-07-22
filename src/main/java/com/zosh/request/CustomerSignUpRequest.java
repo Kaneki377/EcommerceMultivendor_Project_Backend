@@ -3,6 +3,7 @@ package com.zosh.request;
 import com.zosh.domain.Gender;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -17,6 +18,10 @@ public class CustomerSignUpRequest {
 
 
     @NotBlank(message = "Số điện thoại không được để trống")
+    @Pattern(
+            regexp = "^0\\d{9,10}$",
+            message = "Số điện thoại không hợp lệ (phải bắt đầu bằng 0 và có 10-11 chữ số)"
+    )
     private String mobile;
 
    // @NotNull(message = "Giới tính không được để trống")
