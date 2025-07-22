@@ -25,7 +25,7 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer findCustomerByEmail(String email) throws Exception {
         Customer customer = customerRepository.findByAccount_Email(email);
         if(customer == null){
-            throw new Exception("User not found with email - " + email);
+            throw new Exception("Customer not found with email - " + email);
         }
         return customer;
     }
@@ -34,7 +34,7 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer findCustomerByUsername(String username) throws Exception {
         Customer customer = customerRepository.findByAccount_Username(username);
         if(customer == null){
-                throw new Exception("User not found with username - " + username);
+                throw new Exception("Customer not found with username - " + username);
         }
         return customer;
     }
