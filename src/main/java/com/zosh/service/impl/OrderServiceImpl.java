@@ -121,4 +121,10 @@ public class OrderServiceImpl implements OrderService {
 
         return orderRepository.save(order);
     }
+
+    @Override
+    public OrderItem getOrderItemById(long id) throws Exception {
+        return orderItemRepository.findById(id).orElseThrow(()->
+                new Exception("Order item not exist..."));
+    }
 }

@@ -21,4 +21,5 @@ public interface OrderService {
 
     Order cancelOrder(long orderId, Customer customer) throws Exception;
 
+    OrderItem getOrderItemById(long id) throws Exception;
 }
