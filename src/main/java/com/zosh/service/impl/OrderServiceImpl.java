@@ -1,17 +1,16 @@
 package com.zosh.service.impl;
 
 import com.zosh.domain.OrderStatus;
+import com.zosh.domain.PaymentStatus;
 import com.zosh.model.*;
 import com.zosh.repository.AddressReposity;
+import com.zosh.repository.OrderItemRepository;
 import com.zosh.repository.OrderRepository;
 import com.zosh.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +20,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
 
     private final AddressReposity addressRepository;
+
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     public Set<Order> createOrder(Customer customer, Address shippingAddress, Cart cart) {
@@ -56,35 +57,68 @@ public class OrderServiceImpl implements OrderService {
             createdOrder.setTotalMrpPrice(totalOrderPrice);
             createdOrder.setTotalSellingPrice(totalOrderPrice);
             createdOrder.setTotalItem(totalItem);
-            createdOrder.setShippingAddress(shippingAddress);
+            createdOrder.setShippingAddress(address);
+            createdOrder.setOrderStatus(OrderStatus.PENDING);
+            createdOrder.getPaymentDetails().setStatus(PaymentStatus.PENDING);
 
+            Order savedOrder = orderRepository.save(createdOrder);
+            orders.add(savedOrder);
+
+            List<OrderItem> orderItems = new ArrayList<>();
+
+            for(CartItem item: items){
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(savedOrder);
+                orderItem.setMrpPrice(item.getMrpPrice());
+                orderItem.setProduct(item.getProduct());
+                orderItem.setQuantity(item.getQuantity());
+                orderItem.setSize(item.getSize());
+                orderItem.setSellingPrice(item.getSellingPrice());
+                orderItem.setCustomerId(item.getCustomerId());
+
+                savedOrder.getOrderItems().add(orderItem);
+
+                OrderItem savedOrderItem = orderItemRepository.save(orderItem);
+                orderItems.add(savedOrderItem);
+            }
         }
 
-        return Set.of();
+        return orders;
     }
 
     @Override
-    public Order findOrderById(long orderId) {
-        return null;
+    public Order findOrderById(long orderId) throws Exception {
+        return orderRepository.findById(orderId).orElseThrow(()->
+                new Exception("Order not found..."));
     }
 
     @Override
     public List<Order> customerOrderHistory(Long customerId) {
-        return List.of();
+        return orderRepository.findByCustomerId(customerId);
     }
 
     @Override
     public List<Order> sellersOrder(Long sellerId) {
-        return List.of();
+        return orderRepository.findBySellerId(sellerId);
     }
 
     @Override
-    public Order updateOrderStatus(long orderId, OrderStatus orderStatus) {
-        return null;
+    public Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws Exception {
+        Order order = findOrderById(orderId);
+        order.setOrderStatus(orderStatus);
+
+        return orderRepository.save(order);
     }
 
     @Override
-    public Order cancelOrder(long orderId, Customer customer) {
-        return null;
+    public Order cancelOrder(long orderId, Customer customer) throws Exception {
+        Order order = findOrderById(orderId);
+
+        if(!customer.getId().equals(order.getCustomer().getId())) {
+            throw new Exception("You don't have access to this order");
+        }
+        order.setOrderStatus(OrderStatus.CANCELED);
+
+        return orderRepository.save(order);
     }
 }

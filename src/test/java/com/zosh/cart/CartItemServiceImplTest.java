@@ -49,7 +49,7 @@ public class CartItemServiceImplTest {
         CartItem cartItem = new CartItem();
         cartItem.setCart(cart);
         cartItem.setProduct(product);
-        cartItem.setUserId(customer.getId());
+        cartItem.setCustomerId(customer.getId());
         cartItem.setQuantity(2);
         cartItem.setMrpPrice(200);
         cartItem.setSellingPrice(160);
