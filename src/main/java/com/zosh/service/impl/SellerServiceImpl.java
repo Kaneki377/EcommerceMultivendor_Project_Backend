@@ -32,7 +32,7 @@ public class SellerServiceImpl implements SellerService {
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
     @Override
-    public Seller getSellerProfile(String jwt) throws Exception {
+    public Seller getSellerProfile(String jwt) throws SellerException {
         String username = jwtProvider.getUsernameFromJwtToken(jwt);
         return this.getSellerByUsername(username);
     }
@@ -75,7 +75,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller getSellerById(Long id) throws Exception {
+    public Seller getSellerById(Long id) throws SellerException {
         Optional<Seller> optionalSeller = sellerRepository.findById(id);
         if (optionalSeller.isPresent()) {
             return optionalSeller.get();
@@ -93,10 +93,10 @@ public class SellerServiceImpl implements SellerService {
 //    }
 
     @Override
-    public Seller getSellerByUsername(String username) throws Exception {
+    public Seller getSellerByUsername(String username) throws SellerException {
         Seller seller = sellerRepository.findByAccount_Username(username);
         if(seller == null){
-            throw new Exception("Seller not found ... !");
+            throw new SellerException("Seller not found ... !");
         }
         return seller;
     }
@@ -179,7 +179,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller verifyEmail(String username, String otp) throws Exception {
+    public Seller verifyEmail(String username, String otp) throws SellerException {
         Seller seller = this.getSellerByUsername(username);
         if (seller == null) {
             throw new SellerException("Không tìm thấy seller.");
@@ -194,7 +194,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller updateSellerAccountStatus(Long sellerId, AccountStatus status) throws Exception {
+    public Seller updateSellerAccountStatus(Long sellerId, AccountStatus status) throws SellerException {
         Seller seller = this.getSellerById(sellerId);
         seller.setAccountStatus(status);
         return sellerRepository.save(seller);
