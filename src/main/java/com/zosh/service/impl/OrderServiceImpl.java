@@ -3,7 +3,7 @@ package com.zosh.service.impl;
 import com.zosh.domain.OrderStatus;
 import com.zosh.domain.PaymentStatus;
 import com.zosh.model.*;
-import com.zosh.repository.AddressReposity;
+import com.zosh.repository.AddressRepository;
 import com.zosh.repository.OrderItemRepository;
 import com.zosh.repository.OrderRepository;
 import com.zosh.service.OrderService;
@@ -19,7 +19,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
 
-    private final AddressReposity addressRepository;
+    private final AddressRepository addressRepository;
 
     private final OrderItemRepository orderItemRepository;
 

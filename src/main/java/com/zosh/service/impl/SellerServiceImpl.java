@@ -9,7 +9,7 @@ import com.zosh.model.Account;
 import com.zosh.model.Address;
 import com.zosh.model.Seller;
 import com.zosh.repository.AccountRepository;
-import com.zosh.repository.AddressReposity;
+import com.zosh.repository.AddressRepository;
 import com.zosh.repository.RoleRepository;
 import com.zosh.repository.SellerRepository;
 import com.zosh.request.SellerSignUpRequest;
@@ -28,7 +28,7 @@ public class SellerServiceImpl implements SellerService {
     private final SellerRepository sellerRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
-    private final AddressReposity addressReposity;
+    private final AddressRepository addressRepository;
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
     @Override
@@ -51,7 +51,7 @@ public class SellerServiceImpl implements SellerService {
 
         // 3. Lưu địa chỉ nhận hàng
         Address pickupAddress = SellerMapper.toAddress(req.getPickupAddress());
-        Address savedAddress = addressReposity.save(pickupAddress);
+        Address savedAddress = addressRepository.save(pickupAddress);
 
         // 4. Tạo Account mới
         Account account = new Account();
