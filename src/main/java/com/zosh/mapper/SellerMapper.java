@@ -21,6 +21,7 @@ public class SellerMapper {
         BusinessDetails businessDetails = new BusinessDetails();
         businessDetails.setBusinessName(request.getBusinessName());
         businessDetails.setBusinessAddress(request.getBusinessAddress());
+        businessDetails.setBusinessEmail(request.getBusinessEmail());
         businessDetails.setBusinessMobile(request.getBusinessMobile());
         businessDetails.setLogo(request.getLogo());
         businessDetails.setBanner(request.getBanner());
