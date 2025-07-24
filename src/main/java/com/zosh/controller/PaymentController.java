@@ -4,10 +4,7 @@ import com.zosh.domain.PaymentMethod;
 import com.zosh.model.*;
 import com.zosh.response.ApiResponse;
 import com.zosh.response.PaymentLinkResponse;
-import com.zosh.service.CustomerService;
-import com.zosh.service.PaymentService;
-import com.zosh.service.SellerReportService;
-import com.zosh.service.SellerService;
+import com.zosh.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +18,12 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     private final CustomerService customerService;
+
     private final SellerService sellerService;
+
     private final SellerReportService sellerReportService;
+
+    private final TransactionService transactionService;
 
     @GetMapping("/api/payment/{paymentId}")
     public ResponseEntity<ApiResponse> paymentSuccessHandler(
@@ -45,7 +46,7 @@ public class PaymentController {
 
         if(paymentSuccess){
             for(Order order:paymentOrder.getOrders()){
-     //           transactionService.createTransaction(order);
+                transactionService.createTransaction(order);
                 Seller seller = sellerService.getSellerById(order.getSellerId());
                 SellerReport report=sellerReportService.getSellerReport(seller);
                 report.setTotalOrders(report.getTotalOrders()+1);
