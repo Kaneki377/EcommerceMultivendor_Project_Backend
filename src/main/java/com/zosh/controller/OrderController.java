@@ -1,14 +1,15 @@
 package com.zosh.controller;
 
+import com.razorpay.PaymentLink;
 import com.zosh.domain.PaymentMethod;
 import com.zosh.model.*;
+import com.zosh.repository.PaymentOrderRepository;
 import com.zosh.response.PaymentLinkResponse;
 import com.zosh.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Set;
 
@@ -27,6 +28,10 @@ public class OrderController {
 
     private final SellerReportService sellerReportService;
 
+    private final PaymentService paymentService;
+
+    private final PaymentOrderRepository paymentOrderRepository;
+
     @PostMapping()
     public ResponseEntity<PaymentLinkResponse> createOrderHandler(
             @RequestBody Address spippingAddress,
@@ -38,31 +43,29 @@ public class OrderController {
         Cart cart= cartService.findCustomerCart(customer);
         Set<Order> orders =orderService.createOrder(customer, spippingAddress, cart);
 
-       // PaymentOrder paymentOrder=paymentService.createOrder(customer,orders);
+        PaymentOrder paymentOrder = paymentService.createOrder(customer,orders);
 
         PaymentLinkResponse res = new PaymentLinkResponse();
 
-//        if(paymentMethod.equals(PaymentMethod.RAZORPAY)){
-//            PaymentLink payment=paymentService.createRazorpayPaymentLink(customer,
-//                    paymentOrder.getAmount(),
-//                    paymentOrder.getId());
-//            String paymentUrl=payment.get("short_url");
-//            String paymentUrlId=payment.get("id");
-//
-//
-//            res.setPayment_link_url(paymentUrl);
-////			res.setPayment_link_id(paymentUrlId);
-//            paymentOrder.setPaymentLinkId(paymentUrlId);
-//            paymentOrderRepository.save(paymentOrder);
-//        }
-//        else{
-//            String paymentUrl=paymentService.createStripePaymentLink(customer,
-//                    paymentOrder.getAmount(),
-//                    paymentOrder.getId());
-//            res.setPayment_link_url(paymentUrl);
-//        }
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        if(paymentMethod.equals(PaymentMethod.RAZORPAY)){
+            PaymentLink payment=paymentService.createRazorpayPaymentLink(customer,
+                    paymentOrder.getAmount(),
+                    paymentOrder.getId());
+            String paymentUrl=payment.get("short_url");
+            String paymentUrlId=payment.get("id");
 
+            res.setPayment_link_url(paymentUrl);
+            paymentOrder.setPaymentLinkId(paymentUrlId);
+            paymentOrderRepository.save(paymentOrder);
+        }
+        //Bo sung dong equals PaymentMethod Stripe
+        else if(paymentMethod.equals(PaymentMethod.STRIPE)){
+            String paymentUrl=paymentService.createStripePaymentLink(customer,
+                    paymentOrder.getAmount(),
+                    paymentOrder.getId());
+            res.setPayment_link_url(paymentUrl);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @GetMapping("/customer")
