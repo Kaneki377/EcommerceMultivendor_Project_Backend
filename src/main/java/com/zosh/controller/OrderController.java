@@ -46,25 +46,32 @@ public class OrderController {
         PaymentOrder paymentOrder = paymentService.createOrder(customer,orders);
 
         PaymentLinkResponse res = new PaymentLinkResponse();
+        String paymentUrl = "";
 
         if(paymentMethod.equals(PaymentMethod.RAZORPAY)){
-            PaymentLink payment=paymentService.createRazorpayPaymentLink(customer,
+            PaymentLink payment = paymentService.createRazorpayPaymentLink(customer,
                     paymentOrder.getAmount(),
                     paymentOrder.getId());
-            String paymentUrl=payment.get("short_url");
-            String paymentUrlId=payment.get("id");
-
-            res.setPayment_link_url(paymentUrl);
+            paymentUrl = payment.get("short_url");
+            String paymentUrlId = payment.get("id");
             paymentOrder.setPaymentLinkId(paymentUrlId);
             paymentOrderRepository.save(paymentOrder);
         }
-        //Bo sung dong equals PaymentMethod Stripe
         else if(paymentMethod.equals(PaymentMethod.STRIPE)){
-            String paymentUrl=paymentService.createStripePaymentLink(customer,
+            paymentUrl = paymentService.createStripePaymentLink(customer,
                     paymentOrder.getAmount(),
                     paymentOrder.getId());
-            res.setPayment_link_url(paymentUrl);
         }
+        // Thêm khối else if cho PayPal
+        else if (paymentMethod.equals(PaymentMethod.PAYPAL)) {
+            paymentUrl = paymentService.createPaypalPaymentLink(
+                    paymentOrder.getAmount(),
+                    paymentOrder.getId()
+            );
+        }
+
+        res.setPayment_link_url(paymentUrl);
+
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 

@@ -1,5 +1,7 @@
 package com.zosh.service;
 
+import com.paypal.api.payments.Payment;
+import com.paypal.base.rest.PayPalRESTException;
 import com.razorpay.PaymentLink;
 import com.razorpay.RazorpayException;
 import com.stripe.exception.StripeException;
@@ -24,4 +26,8 @@ public interface PaymentService {
 
     String createStripePaymentLink(Customer customer,
                                    Long amount, Long orderId) throws StripeException;
+
+    String createPaypalPaymentLink(Long amount, Long paymentOrderId) throws PayPalRESTException;
+
+    Payment executePaypalPayment(String paymentId, String payerId) throws PayPalRESTException;
 }

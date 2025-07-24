@@ -1,5 +1,9 @@
 package com.zosh.service.impl;
 
+import com.paypal.api.payments.*;
+import com.paypal.base.rest.APIContext;
+import com.paypal.base.rest.PayPalRESTException;
+
 import com.razorpay.Payment;
 import com.razorpay.PaymentLink;
 import com.razorpay.RazorpayClient;
@@ -20,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Set;
 
 @Service
@@ -29,6 +34,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentOrderRepository paymentOrderRepository;
 
     private final OrderRepository orderRepository;
+
+    private final APIContext apiContext;
 
     private String apiKey = "apikey";
 
@@ -163,5 +170,53 @@ public class PaymentServiceImpl implements PaymentService {
         Session session = Session.create(params);
 
         return session.getUrl();
+    }
+
+    @Override
+    public String createPaypalPaymentLink(Long amount, Long paymentOrderId) throws PayPalRESTException {
+        Amount paymentAmount = new Amount();
+        paymentAmount.setCurrency("USD"); // Hoặc bạn có thể truyền currency vào
+        // PayPal yêu cầu định dạng số thập phân, không nhân 100 như Razorpay
+        paymentAmount.setTotal(String.format("%.2f", (double) amount));
+
+        Transaction transaction = new Transaction();
+        transaction.setAmount(paymentAmount);
+        transaction.setDescription("Payment for order #" + paymentOrderId);
+
+        Payer payer = new Payer();
+        payer.setPaymentMethod("paypal");
+
+        com.paypal.api.payments.Payment payment = new com.paypal.api.payments.Payment();
+        payment.setIntent("sale");
+        payment.setPayer(payer);
+        payment.setTransactions(Arrays.asList(transaction));
+
+        // Quan trọng: Xây dựng URL callback với paymentOrderId
+        String cancelUrl = "http://localhost:3000/payment/cancel"; // URL của frontend
+        String successUrl = "http://localhost:8080/api/payment/paypal/success?paymentOrderId=" + paymentOrderId; // URL của backend
+
+        RedirectUrls redirectUrls = new RedirectUrls();
+        redirectUrls.setCancelUrl(cancelUrl);
+        redirectUrls.setReturnUrl(successUrl);
+        payment.setRedirectUrls(redirectUrls);
+
+        com.paypal.api.payments.Payment createdPayment = payment.create(apiContext);
+
+        for (Links link : createdPayment.getLinks()) {
+            if ("approval_url".equalsIgnoreCase(link.getRel())) {
+                return link.getHref();
+            }
+        }
+
+        throw new PayPalRESTException("Approval URL not found");
+    }
+
+    @Override
+    public com.paypal.api.payments.Payment executePaypalPayment(String paymentId, String payerId) throws PayPalRESTException {
+        com.paypal.api.payments.Payment payment = new com.paypal.api.payments.Payment();
+        payment.setId(paymentId);
+        PaymentExecution paymentExecution = new PaymentExecution();
+        paymentExecution.setPayerId(payerId);
+        return payment.execute(apiContext, paymentExecution);
     }
 }
