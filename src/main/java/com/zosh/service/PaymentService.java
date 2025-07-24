@@ -11,9 +11,9 @@ public interface PaymentService {
 
     PaymentOrder createOrder(Customer customer, Set<Order> orders);
 
-    PaymentOrder getPaymentOrderById(String orderId);
+    PaymentOrder getPaymentOrderById(Long orderId) throws Exception;
 
-    PaymentOrder getPaymentOrderByPaymentId(String paymentId);
+    PaymentOrder getPaymentOrderByPaymentId(String paymentLinkId) throws Exception;
 
     Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId, String paymentLinkId);
 
