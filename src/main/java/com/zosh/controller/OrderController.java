@@ -3,10 +3,7 @@ package com.zosh.controller;
 import com.zosh.domain.PaymentMethod;
 import com.zosh.model.*;
 import com.zosh.response.PaymentLinkResponse;
-import com.zosh.service.CartService;
-import com.zosh.service.CustomerService;
-import com.zosh.service.OrderService;
-import com.zosh.service.SellerService;
+import com.zosh.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +24,8 @@ public class OrderController {
     private final CartService cartService;
 
     private final SellerService sellerService;
+
+    private final SellerReportService sellerReportService;
 
     @PostMapping()
     public ResponseEntity<PaymentLinkResponse> createOrderHandler(
@@ -104,11 +103,11 @@ public class OrderController {
         Order order=orderService.cancelOrder(orderId, customer);
 
         Seller seller = sellerService.getSellerById(order.getSellerId());
-//        SellerReport report = sellerReportService.getSellerReport(seller);
-//
-//        report.setCanceledOrders(report.getCanceledOrders()+1);
-//        report.setTotalRefunds(report.getTotalRefunds()+order.getTotalSellingPrice());
-//        sellerReportService.updateSellerReport(report);
+        SellerReport report = sellerReportService.getSellerReport(seller);
+
+        report.setCanceledOrders(report.getCanceledOrders()+1);
+        report.setTotalRefunds(report.getTotalRefunds()+order.getTotalSellingPrice());
+        sellerReportService.updateSellerReport(report);
 
         return ResponseEntity.ok(order);
     }

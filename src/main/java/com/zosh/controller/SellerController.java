@@ -9,10 +9,7 @@ import com.zosh.repository.VerificationCodeRepository;
 import com.zosh.request.*;
 
 import com.zosh.response.AuthResponse;
-import com.zosh.service.AuthService;
-import com.zosh.service.EmailService;
-import com.zosh.service.SellerService;
-import com.zosh.service.VerificationService;
+import com.zosh.service.*;
 import com.zosh.utils.OtpUtils;
 
 import jakarta.validation.Valid;
@@ -28,12 +25,14 @@ import java.util.List;
 @RequestMapping("/sellers")
 @RequiredArgsConstructor
 public class SellerController {
+
     private final SellerService sellerService;
     private final EmailService emailService;
     private final VerificationService verificationService;
     private final VerificationCodeRepository verificationCodeRepository;
     private final JwtProvider jwtProvider;
     private final AuthService authService;
+    private final SellerReportService sellerReportService;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginSeller(@RequestBody LoginRequest req) throws Exception {
@@ -101,14 +100,13 @@ public class SellerController {
         return new ResponseEntity<>(seller, HttpStatus.OK);
     }
 
-//    @GetMapping("/report")
-//    public ResponseEntity<SellerReport> getSellerReport(
-//            @RequestHeader("Authorization") String jwt) throws Exception {
-//        String email = jwtProvider.getEmailFromJwtToken(jwt);
-//        Seller seller = sellerService.getSellerProfile(jwt);
-//        SellerReport report = sellerReportService.getSellerReport(seller);
-//        return new ResponseEntity<>(report, HttpStatus.OK);
-//    }
+    @GetMapping("/report")
+    public ResponseEntity<SellerReport> getSellerReport(
+            @RequestHeader("Authorization") String jwt) throws Exception {
+        Seller seller = sellerService.getSellerProfile(jwt);
+        SellerReport report = sellerReportService.getSellerReport(seller);
+        return new ResponseEntity<>(report, HttpStatus.OK);
+    }
 
     @GetMapping
     public ResponseEntity<List<Seller>> getAllSellers(
