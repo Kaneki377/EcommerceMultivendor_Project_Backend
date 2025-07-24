@@ -38,7 +38,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller createSeller(SellerSignUpRequest req) throws Exception {
+    public Seller createSeller(SellerSignUpRequest req) throws SellerException {
     // Convert từ req sang Seller + Account + BusinessDetail + BankDetail + Address
         // 1. Lấy username và email từ request
         String username = req.getAccount().getUsername();
@@ -46,7 +46,7 @@ public class SellerServiceImpl implements SellerService {
 
         // 2. Kiểm tra trùng username
         if (accountRepository.findByUsername(username) != null) {
-            throw new Exception("Username đã tồn tại! Vui lòng dùng username khác");
+            throw new SellerException("Username đã tồn tại! Vui lòng dùng username khác");
         }
 
         // 3. Lưu địa chỉ nhận hàng

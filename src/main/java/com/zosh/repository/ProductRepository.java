@@ -14,6 +14,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
 
     List<Product> findBySellerId(Long sellerId);
 
+    //tìm kiếm sản phẩm (search) theo từ khóa (gửi từ frontend)
     @Query("SELECT p FROM Product p WHERE (:query IS NULL OR LOWER(p.title) " +
             "LIKE LOWER(CONCAT('%', :query, '%'))) " +
             "OR (:query IS NULL OR LOWER(p.category.name) " +

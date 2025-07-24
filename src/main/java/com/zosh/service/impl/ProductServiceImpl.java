@@ -46,7 +46,7 @@ public class ProductServiceImpl implements ProductService {
 
         if (category2 == null) {
             Category category = new Category();
-            category.setCategoryId(request.getCategory());
+            category.setCategoryId(request.getCategory2());
             category.setLevel(2);
             category.setParentCategory(category1);
             category2 = categoryRepository.save(category);
@@ -56,7 +56,7 @@ public class ProductServiceImpl implements ProductService {
 
         if (category3 == null) {
             Category category = new Category();
-            category.setCategoryId(request.getCategory());
+            category.setCategoryId(request.getCategory3());
             category.setLevel(3);
             category.setParentCategory(category2);
             category3 = categoryRepository.save(category);
@@ -104,13 +104,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product findProductById(Long productId) {
-        try {
-            return productRepository.findById(productId).orElseThrow(()->
-                    new ProductException("Product not found with id " + productId));
-        } catch (ProductException e) {
-            throw new RuntimeException(e);
-        }
+    public Product findProductById(Long productId) throws ProductException{
+        return productRepository.findById(productId)
+                .orElseThrow(()-> new ProductException("Product not found with id: " + productId));
     }
 
     @Override
@@ -118,10 +114,14 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.searchProduct(query);
     }
 
+   //Trả về danh sách Product thỏa điều kiện lọc (filter), phân trang (pagination), sắp xếp (sorting).
     @Override
     public Page<Product> getAllProducts(String category, String brand, String colors, String sizes, Integer minPrice, Integer maxPrice, Integer minDiscount, String sort, String stock, Integer pageNumber) {
+        //Điều kiện lọc động
         Specification<Product> specification = (root, query, criteriaBuilder) ->{
             List<Predicate> predicates = new ArrayList<>();
+
+        //Áp dụng từng điều kiện lọc (filter)
             if(category != null) {
                 Join<Product, Category> categoryJoin = root.join("category");
                 predicates.add(criteriaBuilder.equal(categoryJoin.get("categoryId"), category));
@@ -153,6 +153,7 @@ public class ProductServiceImpl implements ProductService {
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+    //phân trang và sắp xếp
         Pageable pageable;
         if(sort != null && !sort.isEmpty()) {
             pageable = switch (sort) {
