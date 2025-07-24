@@ -1,10 +1,13 @@
 package com.zosh.model;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Home {
 
     private List<HomeCategory> grid;

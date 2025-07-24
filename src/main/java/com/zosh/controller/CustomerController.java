@@ -6,6 +6,7 @@ import com.zosh.model.HomeCategory;
 import com.zosh.repository.CustomerRepository;
 import com.zosh.service.CustomerService;
 import com.zosh.service.HomeCategoryService;
+import com.zosh.service.HomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ public class CustomerController {
 
     private final HomeCategoryService homeCategoryService;
 
+    private final HomeService homeService;
 
     //REST API endpoint GET để lấy thông tin profile của Customer
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
@@ -45,7 +47,7 @@ public class CustomerController {
             @RequestBody List<HomeCategory> homeCategories
     ) {
         List<HomeCategory> categories = homeCategoryService.createCategories(homeCategories);
-        Home home= homeCategoryService.(categories);
+        Home home= homeService.creatHomePageData(homeCategories);
         return new ResponseEntity<>(home, HttpStatus.ACCEPTED);
     }
 }
