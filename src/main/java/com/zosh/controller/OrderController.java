@@ -69,7 +69,7 @@ public class OrderController {
     }
 
     @GetMapping("/customer")
-    public ResponseEntity<List<Order>> usersOrderHistoryHandler(
+    public ResponseEntity<List<Order>> customersOrderHistoryHandler(
             @RequestHeader("Authorization")
             String jwt) throws Exception{
 
