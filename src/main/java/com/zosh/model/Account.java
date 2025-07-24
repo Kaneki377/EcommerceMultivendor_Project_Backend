@@ -33,6 +33,12 @@ public class Account {
 
     private Boolean isEnabled;
 
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+    private Customer customer;
+
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+    private Seller seller;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private Role role;

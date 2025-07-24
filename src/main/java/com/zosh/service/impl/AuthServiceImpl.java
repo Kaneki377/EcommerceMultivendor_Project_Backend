@@ -119,7 +119,7 @@ public class AuthServiceImpl implements AuthService {
             Customer createdCustomer = new Customer();
             createdCustomer.setAccount(account); // Gán account_id cho customer
             createdCustomer.setFullName(req.getFullName());
-            createdCustomer.setMobile("0xxxxxxxxx");
+            createdCustomer.setMobile(req.getMobile());
 
             customer = customerRepository.save(createdCustomer);
             Cart cart = new Cart();
