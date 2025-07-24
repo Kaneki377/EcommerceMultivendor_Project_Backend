@@ -32,7 +32,7 @@ public class SellerOrderController {
         return new ResponseEntity<>(orders, HttpStatus.ACCEPTED);
     }
 
-    @PatchMapping("/{orderId/status/{orderStatus}")
+    @PatchMapping("/{orderId}/status/{orderStatus}")
     public ResponseEntity<Order> updateOrderHandler(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Long orderId,

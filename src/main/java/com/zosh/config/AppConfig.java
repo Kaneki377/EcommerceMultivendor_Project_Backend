@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 @Configuration
@@ -43,7 +44,9 @@ public class AppConfig {
            @Override
            public CorsConfiguration getCorsConfiguration(HttpServletRequest request){
                CorsConfiguration cfg = new CorsConfiguration();
-               cfg.setAllowedOrigins(Collections.singletonList("*"));
+               cfg.setAllowedOrigins(Arrays.asList("https://zosh-bazzar-zosh.vercel.app",
+                       "http://localhost:3000",
+                       "http://localhost:5173"));
                cfg.setAllowedMethods(Collections.singletonList("*"));  //Cho phép tất cả phương thức HTTP
                cfg.setAllowedHeaders(Collections.singletonList("*"));
                cfg.setAllowCredentials(true);                           // Cho phép gửi cookie or token (credentials)
