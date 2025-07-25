@@ -2,8 +2,6 @@ package com.zosh.service;
 
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
-import com.razorpay.PaymentLink;
-import com.razorpay.RazorpayException;
 import com.stripe.exception.StripeException;
 import com.zosh.model.Customer;
 import com.zosh.model.Order;
