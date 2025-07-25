@@ -1,5 +1,7 @@
 package com.zosh.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,9 +36,11 @@ public class Account {
     private Boolean isEnabled;
 
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private Customer customer;
 
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private Seller seller;
 
     @ManyToOne(fetch = FetchType.EAGER)

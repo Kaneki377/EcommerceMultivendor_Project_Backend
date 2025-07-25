@@ -1,5 +1,6 @@
 package com.zosh.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.zosh.domain.AccountStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,11 +21,8 @@ public class Seller {
 
     private String mobile;
 
-    //@Column(unique = true, nullable = false)
-   // private String email;
-
-    //private String password;
     @OneToOne(cascade = CascadeType.ALL )
+    @JsonBackReference
     @JoinColumn(name = "account_id", unique = true,nullable = false)
     private Account account;
 

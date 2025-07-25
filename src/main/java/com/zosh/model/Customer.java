@@ -1,5 +1,6 @@
 package com.zosh.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zosh.domain.Gender;
@@ -38,6 +39,7 @@ public class Customer {
     private LocalDate dob;
     @OneToOne(cascade = CascadeType.ALL )
     @JoinColumn(name = "account_id", unique = true,nullable = false)
+    @JsonBackReference
     private Account account;
 
     @OneToMany
