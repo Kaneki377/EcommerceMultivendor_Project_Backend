@@ -54,7 +54,7 @@ public class SellerProductController {
         }
     }
 
-    @PutMapping("/{productId}")
+    @PatchMapping("/{productId}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long productId,
                                                  @RequestBody Product product) {
         try {
@@ -64,6 +64,16 @@ public class SellerProductController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+//    @PatchMapping("/{productId}/stock")
+//    public ResponseEntity<Product> updateProductStock(@PathVariable Long productId) {
+//        try {
+//            Product updatedProduct = productService.updateProductStock(productId);
+//            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+//        } catch (ProductException e) {
+//            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        }
+//    }
 
 
 }
