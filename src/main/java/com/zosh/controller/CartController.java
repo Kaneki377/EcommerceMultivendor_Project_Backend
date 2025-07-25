@@ -11,7 +11,6 @@ import com.zosh.service.CartItemService;
 import com.zosh.service.CartService;
 import com.zosh.service.CustomerService;
 import com.zosh.service.ProductService;
-import jdk.jshell.spi.ExecutionControl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +62,7 @@ public class CartController {
     }
 
     @DeleteMapping("/item/{cartItemId}")
-    public ResponseEntity<ApiResponse> deleteCartItemhandler(
+    public ResponseEntity<ApiResponse> deleteCartItemHandler(
             @PathVariable Long cartItemId,
             @RequestHeader("Authorization") String jwt
     ) throws Exception {
