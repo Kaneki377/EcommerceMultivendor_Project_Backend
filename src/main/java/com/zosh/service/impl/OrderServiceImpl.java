@@ -1,5 +1,6 @@
 package com.zosh.service.impl;
 
+import com.zosh.domain.AddressOwnerType;
 import com.zosh.domain.OrderStatus;
 import com.zosh.domain.PaymentStatus;
 import com.zosh.model.*;
@@ -27,8 +28,9 @@ public class OrderServiceImpl implements OrderService {
     public Set<Order> createOrder(Customer customer, Address shippingAddress, Cart cart) {
         if(!customer.getAddresses().contains(shippingAddress)) {
             customer.getAddresses().add(shippingAddress);
+            shippingAddress.setOwnerId(customer.getId());
+            shippingAddress.setOwnerType(AddressOwnerType.SHIPPING);
         }
-
         Address address = addressRepository.save(shippingAddress);
 
         //Trong case: 1 user buy product from different seller

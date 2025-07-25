@@ -2,6 +2,7 @@ package com.zosh.service.impl;
 
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.AccountStatus;
+import com.zosh.domain.AddressOwnerType;
 import com.zosh.domain.USER_ROLE;
 import com.zosh.exceptions.SellerException;
 import com.zosh.mapper.SellerMapper;
@@ -49,11 +50,7 @@ public class SellerServiceImpl implements SellerService {
             throw new SellerException("Username đã tồn tại! Vui lòng dùng username khác");
         }
 
-        // 3. Lưu địa chỉ nhận hàng
-        Address pickupAddress = SellerMapper.toAddress(req.getPickupAddress());
-        Address savedAddress = addressRepository.save(pickupAddress);
-
-        // 4. Tạo Account mới
+        // 3. Account mới
         Account account = new Account();
         account.setUsername(username);
         account.setEmail(email);
@@ -63,8 +60,15 @@ public class SellerServiceImpl implements SellerService {
         account.setIsEnabled(true);
         account = accountRepository.save(account);
 
+        // 3. Lưu địa chỉ nhận hàng
+        Address pickupAddress = SellerMapper.toAddress(req.getPickupAddress());
+        pickupAddress.setOwnerType(AddressOwnerType.PICKUP);
+        Address savedAddress = addressRepository.save(pickupAddress);
+
+        //Seller mới
         Seller newSeller = new Seller();
         newSeller.setAccount(account);
+        pickupAddress.setOwnerId(newSeller.getId());
         newSeller.setSellerName(req.getSellerName());
         newSeller.setMobile(req.getMobile());
         newSeller.setPickupAddress(savedAddress);

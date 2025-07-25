@@ -1,9 +1,7 @@
 package com.zosh.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.zosh.domain.AddressOwnerType;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -31,4 +29,10 @@ public class Address {
     private String postalCode;
 
     private String mobile;
+
+    @Enumerated(EnumType.STRING)
+    private AddressOwnerType ownerType; // "pickup", "shipping", "home", ...
+
+    private Long ownerId;     // ID của chủ sở hữu địa chỉ (Customer, Seller, Store, ...)
+
 }
