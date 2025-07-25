@@ -6,6 +6,7 @@ import com.zosh.model.Seller;
 import com.zosh.request.CreateProductRequest;
 import com.zosh.service.ProductService;
 import com.zosh.service.SellerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class SellerProductController {
 
     @PostMapping()
     public ResponseEntity<Product> createProduct(
-            @RequestBody CreateProductRequest request,
+            @RequestBody @Valid CreateProductRequest request,
             @RequestHeader("Authorization") String jwt) throws Exception {
         Seller seller = sellerService.getSellerProfile(jwt);
 
