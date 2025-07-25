@@ -35,11 +35,7 @@ public class SellerController {
     private final SellerReportService sellerReportService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> loginSeller(@RequestBody LoginRequest req) throws Exception {
-        String username = req.getUsername();
-        String password = req.getPassword();
-
-        req.setUsername(username);
+    public ResponseEntity<AuthResponse> loginSeller(@Valid @RequestBody LoginRequest req) throws Exception {
         AuthResponse authResponse = authService.signIn(req);
 
         return ResponseEntity.ok(authResponse);
