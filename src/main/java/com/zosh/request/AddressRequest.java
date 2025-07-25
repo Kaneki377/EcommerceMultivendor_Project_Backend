@@ -23,4 +23,5 @@ public class AddressRequest {
     private String postalCode;
 
     private String mobile;
+
 }
