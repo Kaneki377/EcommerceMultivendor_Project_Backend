@@ -4,6 +4,7 @@ import com.zosh.exceptions.ProductException;
 import com.zosh.model.Product;
 import com.zosh.model.Seller;
 import com.zosh.request.CreateProductRequest;
+import com.zosh.response.ApiResponse;
 import com.zosh.service.ProductService;
 import com.zosh.service.SellerService;
 import jakarta.validation.Valid;
@@ -45,12 +46,20 @@ public class SellerProductController {
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<Product> deleteProduct(@PathVariable Long productId) throws ProductException {
+    public ResponseEntity<ApiResponse> deleteProduct(@PathVariable Long productId) throws ProductException {
         try{
             productService.deleteProduct(productId);
-            return new ResponseEntity<>(HttpStatus.OK);
+
+            ApiResponse response = new ApiResponse();
+            response.setMessage("Product has been deleted");
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch(Exception e){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+            ApiResponse response = new ApiResponse();
+            response.setMessage("Product not found");
+
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
     }
 
