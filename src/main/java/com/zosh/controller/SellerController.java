@@ -37,7 +37,6 @@ public class SellerController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginSeller(@Valid @RequestBody LoginRequest req) throws Exception {
         AuthResponse authResponse = authService.signIn(req);
-
         return ResponseEntity.ok(authResponse);
     }
 

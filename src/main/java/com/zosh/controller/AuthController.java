@@ -32,14 +32,6 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> createCustomerHandler(@Valid @RequestBody CustomerSignUpRequest req) throws CustomerException {
-
-//        Customer customer = new Customer();
-//        customer.setEmail(req.getEmail());
-//        customer.setFullName(req.getFullName());
-//        Customer saveCustomer =  customerRepository.save(customer);
-
-
-
         //Tạo Customer bằng jwt token
         String jwt = authService.createUser(req);
 

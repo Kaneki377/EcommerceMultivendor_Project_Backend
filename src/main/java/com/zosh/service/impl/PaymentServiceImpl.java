@@ -22,6 +22,7 @@ import com.zosh.repository.PaymentOrderRepository;
 import com.zosh.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -41,7 +42,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     private String apiSecret = "apisecret";
 
-    private String stripeSecretKey = "stripescretkey";
+    @Value("${stripe.api.key}")
+    private String stripeSecretKey;
 
     @Override
     public PaymentOrder createOrder(Customer customer, Set<Order> orders) {
