@@ -17,13 +17,6 @@ public interface PaymentService {
 
     PaymentOrder getPaymentOrderById(Long orderId) throws Exception;
 
-    PaymentOrder getPaymentOrderByPaymentId(String paymentLinkId) throws Exception;
-
-    Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId, String paymentLinkId) throws RazorpayException;
-
-    PaymentLink createRazorpayPaymentLink(Customer customer, Long amount,
-                                          Long orderId) throws RazorpayException;
-
     String createStripePaymentLink(Customer customer,
                                    Long amount, Long orderId) throws StripeException;
 

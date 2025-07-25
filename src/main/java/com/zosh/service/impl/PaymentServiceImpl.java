@@ -1,30 +1,21 @@
 package com.zosh.service.impl;
 
 import com.paypal.api.payments.*;
+import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
-
-import com.razorpay.Payment;
-import com.razorpay.PaymentLink;
-import com.razorpay.RazorpayClient;
-import com.razorpay.RazorpayException;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
-import com.zosh.domain.PaymentOrderStatus;
-import com.zosh.domain.PaymentStatus;
 import com.zosh.model.Customer;
 import com.zosh.model.Order;
 import com.zosh.model.PaymentOrder;
-import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
 import com.zosh.service.PaymentService;
 import lombok.RequiredArgsConstructor;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.util.Arrays;
 import java.util.Set;
 
@@ -34,13 +25,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentOrderRepository paymentOrderRepository;
 
-    private final OrderRepository orderRepository;
-
     private final APIContext apiContext;
-
-    private String apiKey = "apikey";
-
-    private String apiSecret = "apisecret";
 
     @Value("${stripe.api.key}")
     private String stripeSecretKey;
@@ -62,88 +47,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         return paymentOrderRepository.findById(orderId).orElseThrow(()->
                 new Exception("Payment order not found"));
-    }
-
-    @Override
-    public PaymentOrder getPaymentOrderByPaymentId(String paymentLinkId) throws Exception {
-
-        PaymentOrder paymentOrder = paymentOrderRepository.findByPaymentLinkId(paymentLinkId);
-        if (paymentOrder == null) {
-            throw new Exception("Payment order not found with provided payment link id");
-        }
-        return null;
-    }
-
-    @Override
-    public Boolean ProceedPaymentOrder(PaymentOrder paymentOrder,
-                                       String paymentId,
-                                       String paymentLinkId) throws RazorpayException {
-        if(paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)){
-            RazorpayClient razorpayClient = new RazorpayClient(apiKey, apiSecret);
-
-            Payment payment = razorpayClient.payments.fetch(paymentId);
-
-            String paymentStatus = payment.get("status");
-            //CAPTURED or captured
-            if(paymentStatus.equals("CAPTURED")){
-                Set<Order> orders = paymentOrder.getOrders();
-                for(Order order : orders){
-                    order.setPaymentStatus(PaymentStatus.COMPLETED);
-                    orderRepository.save(order);
-                }
-                paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
-                paymentOrderRepository.save(paymentOrder);
-                return true;
-            }
-            paymentOrder.setStatus(PaymentOrderStatus.FAILED);
-            paymentOrderRepository.save(paymentOrder);
-        }
-        return false;
-    }
-
-    @Override
-    public PaymentLink createRazorpayPaymentLink(Customer customer, Long amount, Long orderId) throws RazorpayException {
-        //In razorpay in PESA? not rupees so we need to multiply 100
-        amount = amount * 100;
-
-        try{
-            RazorpayClient razorpayClient = new RazorpayClient(apiKey, apiSecret);
-
-            JSONObject paymentLinkRequest = new JSONObject();
-            paymentLinkRequest.put("amount", amount);
-            //CAn set USD or INR
-            paymentLinkRequest.put("currency", "USD");
-
-            JSONObject customerInPayment = new JSONObject();
-            customerInPayment.put("username", customer.getAccount().getUsername());
-            customerInPayment.put("name", customer.getFullName());
-            customerInPayment.put("email", customer.getAccount().getEmail());
-
-            //Set customer infor
-            paymentLinkRequest.put("customer", customerInPayment);
-
-            JSONObject notify = new JSONObject();
-            notify.put("email", true);
-            paymentLinkRequest.put("notify", notify);
-            //Can implement enable reminder
-
-            //URL Frontend of page notification payment success
-            //After payment success system will return on the endpoint below
-            paymentLinkRequest.put("callback_url",
-                    "http://localhost:3000/payment-success" + orderId);
-
-            paymentLinkRequest.put("callback_method", "get");
-
-            PaymentLink paymentLink = razorpayClient.paymentLink.create(paymentLinkRequest);
-
-            String paymentLinkUrl = paymentLink.get("short_url");
-            String paymentLinkId = paymentLink.get("id");
-
-            return paymentLink;
-        }catch (Exception e){
-            System.out.println(e.getMessage());
-            throw new RazorpayException(e.getMessage());
-        }
     }
 
     @Override
@@ -185,22 +88,7 @@ public class PaymentServiceImpl implements PaymentService {
         transaction.setAmount(paymentAmount);
         transaction.setDescription("Payment for order #" + paymentOrderId);
 
-        Payer payer = new Payer();
-        payer.setPaymentMethod("paypal");
-
-        com.paypal.api.payments.Payment payment = new com.paypal.api.payments.Payment();
-        payment.setIntent("sale");
-        payment.setPayer(payer);
-        payment.setTransactions(Arrays.asList(transaction));
-
-        // Quan trọng: Xây dựng URL callback với paymentOrderId
-        String cancelUrl = "http://localhost:3000/payment/cancel"; // URL của frontend
-        String successUrl = "http://localhost:8080/api/payment/paypal/success?paymentOrderId=" + paymentOrderId; // URL của backend
-
-        RedirectUrls redirectUrls = new RedirectUrls();
-        redirectUrls.setCancelUrl(cancelUrl);
-        redirectUrls.setReturnUrl(successUrl);
-        payment.setRedirectUrls(redirectUrls);
+        Payment payment = getPayment(paymentOrderId, transaction);
 
         com.paypal.api.payments.Payment createdPayment = payment.create(apiContext);
 
@@ -213,9 +101,29 @@ public class PaymentServiceImpl implements PaymentService {
         throw new PayPalRESTException("Approval URL not found");
     }
 
+    private static Payment getPayment(Long paymentOrderId, Transaction transaction) {
+        Payer payer = new Payer();
+        payer.setPaymentMethod("paypal");
+
+        Payment payment = new Payment();
+        payment.setIntent("sale");
+        payment.setPayer(payer);
+        payment.setTransactions(Arrays.asList(transaction));
+
+        // Quan trọng: Xây dựng URL callback với paymentOrderId
+        String cancelUrl = "http://localhost:3000/payment/cancel"; // URL của frontend
+        String successUrl = "http://localhost:8080/api/payment/paypal/success?paymentOrderId=" + paymentOrderId; // URL của backend
+
+        RedirectUrls redirectUrls = new RedirectUrls();
+        redirectUrls.setCancelUrl(cancelUrl);
+        redirectUrls.setReturnUrl(successUrl);
+        payment.setRedirectUrls(redirectUrls);
+        return payment;
+    }
+
     @Override
-    public com.paypal.api.payments.Payment executePaypalPayment(String paymentId, String payerId) throws PayPalRESTException {
-        com.paypal.api.payments.Payment payment = new com.paypal.api.payments.Payment();
+    public Payment executePaypalPayment(String paymentId, String payerId) throws PayPalRESTException {
+        Payment payment = new Payment();
         payment.setId(paymentId);
         PaymentExecution paymentExecution = new PaymentExecution();
         paymentExecution.setPayerId(payerId);
