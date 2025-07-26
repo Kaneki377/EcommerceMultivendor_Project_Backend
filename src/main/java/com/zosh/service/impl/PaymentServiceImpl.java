@@ -50,7 +50,18 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public String createStripePaymentLink(Customer customer, Long amount, Long orderId) throws StripeException {
+    public PaymentOrder getPaymentOrderByPaymentId(String paymentId) throws Exception {
+        PaymentOrder paymentOrder = paymentOrderRepository
+                .findByPaymentLinkId(paymentId);
+
+        if(paymentOrder==null){
+            throw new Exception("payment order not found with id "+paymentId);
+        }
+        return paymentOrder;
+    }
+
+    @Override
+    public Session createStripePaymentLink(Customer customer, Long amount, Long orderId) throws StripeException {
         Stripe.apiKey = stripeSecretKey;
 
         SessionCreateParams params = SessionCreateParams.builder()
@@ -74,7 +85,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         Session session = Session.create(params);
 
-        return session.getUrl();
+        //return session.getUrl();
+        return session;
     }
 
     @Override

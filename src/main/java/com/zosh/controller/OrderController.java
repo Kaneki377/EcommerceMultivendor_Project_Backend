@@ -1,5 +1,6 @@
 package com.zosh.controller;
 
+import com.stripe.model.checkout.Session;
 import com.zosh.domain.PaymentMethod;
 import com.zosh.domain.PaymentOrderStatus;
 import com.zosh.domain.PaymentStatus;
@@ -39,6 +40,7 @@ public class OrderController {
 
     private final TransactionService transactionService;
 
+    //Tạo đơn hàng mới và tạo link thanh toán (Stripe or PayPal).
     @PostMapping()
     public ResponseEntity<PaymentLinkResponse> createOrderHandler(
             @RequestBody Address spippingAddress,
@@ -55,10 +57,16 @@ public class OrderController {
         PaymentLinkResponse res = new PaymentLinkResponse();
         String paymentUrl = "";
 
-        if(paymentMethod.equals(PaymentMethod.STRIPE)){
-            paymentUrl = paymentService.createStripePaymentLink(customer,
+        if (paymentMethod.equals(PaymentMethod.STRIPE)) {
+            Session session = paymentService.createStripePaymentLink(customer,
                     paymentOrder.getAmount(),
                     paymentOrder.getId());
+
+            paymentUrl = session.getUrl(); // <-- sửa chỗ này
+            String sessionId = session.getId();
+            paymentOrder.setPaymentLinkId(session.getId()); // lưu session ID nếu cần
+            paymentOrderRepository.save(paymentOrder);
+            res.setPayment_link_id(sessionId);
         }
         // Thêm khối else if cho PayPal
         else if (paymentMethod.equals(PaymentMethod.PAYPAL)) {
@@ -68,11 +76,12 @@ public class OrderController {
             );
         }
 
-        res.setPayment_link_url(paymentUrl);
 
+        res.setPayment_link_url(paymentUrl);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    //Đánh dấu thanh toán đã hoàn tất và cập nhật toàn bộ đơn hàng liên quan.
     @PutMapping("/payment-order/{paymentOrderId}/complete")
     public ResponseEntity<ApiResponse> completePayment(
             @PathVariable Long paymentOrderId, // Nhận paymentOrderId

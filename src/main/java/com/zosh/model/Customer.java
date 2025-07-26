@@ -53,5 +53,7 @@ public class Customer {
     )
     @JsonIgnore
     private Set<Coupon> usedCoupons = new HashSet<>();
+
+    private boolean isKoc = false;
 }
 

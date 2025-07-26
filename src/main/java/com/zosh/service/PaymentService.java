@@ -3,6 +3,7 @@ package com.zosh.service;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
 import com.stripe.exception.StripeException;
+import com.stripe.model.checkout.Session;
 import com.zosh.model.Customer;
 import com.zosh.model.Order;
 import com.zosh.model.PaymentOrder;
@@ -15,8 +16,10 @@ public interface PaymentService {
 
     PaymentOrder getPaymentOrderById(Long orderId) throws Exception;
 
-    String createStripePaymentLink(Customer customer,
-                                   Long amount, Long orderId) throws StripeException;
+    PaymentOrder getPaymentOrderByPaymentId(String paymentId) throws Exception;
+
+    Session createStripePaymentLink(Customer customer,
+                                    Long amount, Long orderId) throws StripeException;
 
     String createPaypalPaymentLink(Long amount, Long paymentOrderId) throws PayPalRESTException;
 

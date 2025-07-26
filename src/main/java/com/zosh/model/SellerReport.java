@@ -34,5 +34,4 @@ public class SellerReport {
 
     private Integer totalTransactions = 0;
 
-
 }
