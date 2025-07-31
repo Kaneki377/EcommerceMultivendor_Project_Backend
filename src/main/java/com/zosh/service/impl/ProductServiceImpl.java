@@ -69,6 +69,7 @@ public class ProductServiceImpl implements ProductService {
         product.setCategory(category3);
         product.setDescription(request.getDescription());
         product.setCreatedAt(LocalDateTime.now());
+        product.setQuantity(request.getQuantity());
         product.setTitle(request.getTitle());
         product.setColor(request.getColor());
         product.setMrpPrice(request.getMrpPrice());

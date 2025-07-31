@@ -28,6 +28,8 @@ public class CreateProductRequest {
     @NotBlank(message = "Color must not be empty")
     private String color;
 
+    private int quantity;
+
     @NotEmpty(message = "Images list must not be empty")
     private List<@NotBlank(message = "Image URL must not be blank") String> images;
 
