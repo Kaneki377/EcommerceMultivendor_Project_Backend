@@ -6,11 +6,15 @@ import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.zosh.domain.PaymentOrderStatus;
+import com.zosh.domain.PaymentStatus;
 import com.zosh.model.Customer;
 import com.zosh.model.Order;
 import com.zosh.model.PaymentOrder;
+import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
 import com.zosh.service.PaymentService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +28,7 @@ import java.util.Set;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentOrderRepository paymentOrderRepository;
-
+    private final OrderRepository orderRepository;
     private final APIContext apiContext;
 
     @Value("${stripe.api.key}")
@@ -58,6 +62,35 @@ public class PaymentServiceImpl implements PaymentService {
             throw new Exception("payment order not found with id "+paymentId);
         }
         return paymentOrder;
+    }
+
+    @Override
+    public Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId, String paymentLinkId) throws StripeException {
+        if (paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)) {
+
+            PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentId); // ID dạng pi_xxx
+
+            String status = paymentIntent.getStatus(); // e.g. "succeeded"
+            Long amountReceived = paymentIntent.getAmountReceived(); // số tiền nhận được
+
+            if ("succeeded".equals(status)) {
+                Set<Order> orders = paymentOrder.getOrders();
+                for (Order order : orders) {
+                    order.setPaymentStatus(PaymentStatus.COMPLETED);
+                    orderRepository.save(order);
+                }
+
+                paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+                paymentOrderRepository.save(paymentOrder);
+                return true;
+            }
+
+            paymentOrder.setStatus(PaymentOrderStatus.FAILED);
+            paymentOrderRepository.save(paymentOrder);
+            return false;
+        }
+
+        return false;
     }
 
     @Override

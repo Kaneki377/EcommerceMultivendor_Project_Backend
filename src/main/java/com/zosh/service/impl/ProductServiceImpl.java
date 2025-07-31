@@ -104,6 +104,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Product updateProductStock(Long productId) throws ProductException {
+        Product product = this.findProductById(productId);
+        product.setIn_stock(!product.isIn_stock());
+        return productRepository.save(product);
+    }
+
+    @Override
     public Product findProductById(Long productId) throws ProductException{
         return productRepository.findById(productId)
                 .orElseThrow(()-> new ProductException("Product not found with id: " + productId));
