@@ -1,5 +1,6 @@
 package com.zosh.controller;
 
+import com.zosh.dto.AffiliateRegistrationResponse;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.AffiliateRegistration;
 import com.zosh.model.Koc;
@@ -39,7 +40,7 @@ public class KocController {
         return ResponseEntity.ok("Access granted for ROLE_KOC");
     }
     // KOC đăng ký chiến dịch
-    @PostMapping("/register/{campaignId}")
+    @PostMapping("/register-campaign/{campaignId}")
     @PreAuthorize("hasRole('KOC')")
     public ResponseEntity<AffiliateRegistration> registerToCampaign(
             @PathVariable Long campaignId,
@@ -52,10 +53,10 @@ public class KocController {
     // KOC xem các đăng ký của chính mình
     @GetMapping("/my-registrations")
     @PreAuthorize("hasRole('KOC')")
-    public ResponseEntity<List<AffiliateRegistration>> getMyRegistrations(
+    public ResponseEntity<List<AffiliateRegistrationResponse>> getMyRegistrations(
             @RequestHeader("Authorization") String jwt) {
 
-        List<AffiliateRegistration> list = registrationService.getMyRegistrations(jwt);
+        List<AffiliateRegistrationResponse> list = registrationService.getMyRegistrations(jwt);
         return ResponseEntity.ok(list);
     }
 }

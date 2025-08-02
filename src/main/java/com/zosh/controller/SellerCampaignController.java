@@ -1,5 +1,7 @@
 package com.zosh.controller;
 
+import com.zosh.dto.AffiliateRegistrationResponse;
+import com.zosh.dto.RegistrationApprovalResponse;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.AffiliateCampaign;
 import com.zosh.model.AffiliateRegistration;
@@ -46,6 +48,7 @@ public class SellerCampaignController {
             @RequestHeader("Authorization") String jwt) throws SellerException {
         return ResponseEntity.ok(affiliateCampaignService.getCampaignsBySeller(jwt));
     }
+    //Seller cập nhật chiến dịch
     @PatchMapping("/campaigns/{id}")
     @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<AffiliateCampaign> partialUpdateCampaign(
@@ -57,6 +60,19 @@ public class SellerCampaignController {
         AffiliateCampaign updated = affiliateCampaignService.partialUpdate(id, seller.getId(), updates);
         return ResponseEntity.ok(updated);
     }
+    //Seller xóa chiến dịch
+    @DeleteMapping("/campaigns/{id}")
+    @PreAuthorize("hasRole('SELLER')")
+    public ResponseEntity<?> deleteCampaign(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String jwt) throws Exception {
+
+        Seller seller = sellerService.getSellerProfile(jwt);
+        affiliateCampaignService.deleteCampaign(id, seller.getId());
+
+        return ResponseEntity.ok().body("Campaign deleted successfully");
+    }
+
     // SELLER xem các Koc đăng ký  chiến dịch của mình
     @GetMapping("/campaign-registrations")
     @PreAuthorize("hasRole('SELLER')")
@@ -70,21 +86,21 @@ public class SellerCampaignController {
     // SELLER duyệt KOC
     @PutMapping("/affiliate-registrations/approve/{registrationId}")
     @PreAuthorize("hasRole('SELLER')")
-    public ResponseEntity<AffiliateRegistration> approveRegistration(
+    public ResponseEntity<RegistrationApprovalResponse> approveRegistration(
             @PathVariable Long registrationId,
             @RequestHeader("Authorization") String jwt) throws SellerException {
 
-        AffiliateRegistration registration = registrationService.approveRegistration(registrationId, jwt);
+        RegistrationApprovalResponse registration = registrationService.approveRegistration(registrationId, jwt);
         return ResponseEntity.ok(registration);
     }
     // SELLER từ chối KOC
     @PutMapping("/affiliate-registrations/reject/{registrationId}")
     @PreAuthorize("hasRole('SELLER')")
-    public ResponseEntity<AffiliateRegistration> rejectRegistration(
+    public ResponseEntity<RegistrationApprovalResponse> rejectRegistration(
             @PathVariable Long registrationId,
             @RequestHeader("Authorization") String jwt) throws SellerException {
 
-        AffiliateRegistration registration = registrationService.rejectRegistration(registrationId, jwt);
+        RegistrationApprovalResponse registration = registrationService.rejectRegistration(registrationId, jwt);
         return ResponseEntity.ok(registration);
     }
 }

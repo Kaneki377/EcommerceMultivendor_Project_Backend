@@ -108,4 +108,16 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
 
         return affiliateCampaignRepository.save(campaign);
     }
+
+    @Override
+    public void deleteCampaign(Long campaignId, Long sellerId) throws Exception {
+        AffiliateCampaign campaign = affiliateCampaignRepository.findById(campaignId)
+                .orElseThrow(() -> new Exception("Campaign not found"));
+
+        if (!campaign.getSeller().getId().equals(sellerId)) {
+            throw new Exception("You do not have permission to delete this campaign");
+        }
+
+        affiliateCampaignRepository.delete(campaign);
+    }
 }

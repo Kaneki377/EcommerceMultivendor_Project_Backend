@@ -2,6 +2,8 @@ package com.zosh.service.impl;
 
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.RegistrationStatus;
+import com.zosh.dto.AffiliateRegistrationResponse;
+import com.zosh.dto.RegistrationApprovalResponse;
 import com.zosh.exceptions.KocException;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.*;
@@ -36,7 +38,7 @@ public class AffiliateRegistrationServiceImpl implements AffiliateRegistrationSe
 
         // Kiểm tra đã đăng ký chưa
         if (registrationRepository.existsByKocAndCampaign(koc, campaign)) {
-            throw new RuntimeException("You have already signed up for this campaign !");
+            throw new KocException("You have already signed up for this campaign !");
         }
 
         AffiliateRegistration registration = new AffiliateRegistration();
@@ -50,7 +52,7 @@ public class AffiliateRegistrationServiceImpl implements AffiliateRegistrationSe
 
     @Override
     @Transactional
-    public AffiliateRegistration approveRegistration(Long registrationId, String jwt) throws SellerException{
+    public RegistrationApprovalResponse approveRegistration(Long registrationId, String jwt) throws SellerException{
         String username = jwtProvider.getUsernameFromJwtToken(jwt);
 
         Seller seller = sellerRepository.findByAccount_Username(username);
@@ -66,12 +68,20 @@ public class AffiliateRegistrationServiceImpl implements AffiliateRegistrationSe
         }
 
         registration.setStatus(RegistrationStatus.APPROVED);
-        return registrationRepository.save(registration);
+        registrationRepository.save(registration);
+
+        return new RegistrationApprovalResponse(
+                registration.getId(),
+                registration.getCampaign().getCampaignCode(),
+                registration.getCampaign().getName(),
+                registration.getKoc().getKocId(),
+                registration.getStatus()
+        );
     }
 
     @Override
     @Transactional
-    public AffiliateRegistration rejectRegistration(Long registrationId, String jwt) throws SellerException{
+    public RegistrationApprovalResponse rejectRegistration(Long registrationId, String jwt) throws SellerException{
         String username = jwtProvider.getUsernameFromJwtToken(jwt);
 
         Seller seller = sellerRepository.findByAccount_Username(username);
@@ -83,21 +93,39 @@ public class AffiliateRegistrationServiceImpl implements AffiliateRegistrationSe
                 .orElseThrow(() -> new RuntimeException("Registration does not exist"));
 
         if (!registration.getCampaign().getSeller().getId().equals(seller.getId())) {
-            throw new RuntimeException("You do not have permission to rejected this registration.");
+            throw new RuntimeException("You do not have permission to reject this registration.");
         }
 
         registration.setStatus(RegistrationStatus.REJECTED);
-        return registrationRepository.save(registration);
+        registrationRepository.save(registration);
+
+        return new RegistrationApprovalResponse(
+                registration.getId(),
+                registration.getCampaign().getCampaignCode(),
+                registration.getCampaign().getName(),
+                registration.getKoc().getKocId(),
+                registration.getStatus()
+        );
     }
 
     @Override
-    public List<AffiliateRegistration> getMyRegistrations(String jwt) throws KocException{
+    public List<AffiliateRegistrationResponse> getMyRegistrations(String jwt) throws KocException{
         String username = jwtProvider.getUsernameFromJwtToken(jwt);
 
         Koc koc = kocRepository.findByCustomer_Account_Username(username)
                 .orElseThrow(() -> new KocException("KOC doesn't exist"));
 
-        return registrationRepository.findByKoc_Id(koc.getId());
+        List<AffiliateRegistration> registrations = registrationRepository.findByKoc_Id(koc.getId());
+
+        return registrations.stream()
+                .map(r -> new AffiliateRegistrationResponse(
+                        r.getId(),
+                        r.getCampaign().getId(),
+                        r.getCampaign().getName(),
+                        r.getRegisteredAt(),
+                        r.getStatus()
+                ))
+                .toList();
     }
 
     @Override
