@@ -34,6 +34,8 @@ public class SellerController {
     private final JwtProvider jwtProvider;
     private final AuthService authService;
     private final SellerReportService sellerReportService;
+    private final AffiliateCampaignService affiliateCampaignService;
+
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginSeller(@Valid @RequestBody LoginRequest req) throws Exception {
@@ -80,7 +82,17 @@ public class SellerController {
 
         return new ResponseEntity<>(savedSeller, HttpStatus.CREATED);
     }
+        @PostMapping("/campaigns")
+        @PreAuthorize("hasRole('SELLER')")
+        public ResponseEntity<AffiliateCampaign> createAffiliateCampaign(
+                @Valid @RequestBody CreateAffiliateCampaignRequest request,
+                @RequestHeader("Authorization") String jwt) throws Exception {
 
+            Seller seller = sellerService.getSellerProfile(jwt);
+
+            AffiliateCampaign campaign = affiliateCampaignService.createCampaign(seller.getId(), request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(campaign);
+        }
     @GetMapping("/{id}")
     public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws Exception {
         Seller seller = sellerService.getSellerById(id);
@@ -131,4 +143,5 @@ public class SellerController {
         return ResponseEntity.noContent().build();
 
     }
+
 }

@@ -12,5 +12,5 @@ public class BankDetailRequest {
     private String accountHolderName;
 
 
-    private String ifscCode;
+    private String bankName;
 }

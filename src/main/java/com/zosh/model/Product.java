@@ -52,6 +52,9 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "affiliate_campaign_id")
+    private AffiliateCampaign affiliateCampaign;
     private boolean in_stock = true;
 }
 

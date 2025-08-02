@@ -52,7 +52,7 @@ public class SellerServiceImplTest {
         BankDetailRequest  bankDetailRequest = new BankDetailRequest();
         bankDetailRequest.setAccountHolderName("Test Seller");
         bankDetailRequest.setAccountNumber("09931232123");
-        bankDetailRequest.setIfscCode("1234");
+        bankDetailRequest.setBankName("1234");
 
         request.setBankDetails(bankDetailRequest);
 

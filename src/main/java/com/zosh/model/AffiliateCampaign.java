@@ -3,6 +3,8 @@ package com.zosh.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "affiliate_campaign")
@@ -28,9 +30,13 @@ public class AffiliateCampaign {
     private Double commissionPercent;
 
     @Column(name = "create_at")
-    private LocalDateTime createAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "expried")
-    private LocalDateTime exprired;
+    private LocalDateTime expiredAt;
     private Boolean active;
+
+    @OneToMany(mappedBy = "affiliateCampaign", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Product> products = new ArrayList<>();
+
 }

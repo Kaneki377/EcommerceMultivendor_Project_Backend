@@ -13,7 +13,7 @@ public class SellerMapper {
         BankDetails bankDetails = new BankDetails();
         bankDetails.setAccountNumber(request.getAccountNumber());
         bankDetails.setAccountHolderName(request.getAccountHolderName());
-        bankDetails.setIfscCode(request.getIfscCode());
+        bankDetails.setBankName(request.getBankName());
         return bankDetails;
     }
 

@@ -1,6 +1,7 @@
 package com.zosh.repository;
 
 import com.zosh.model.AffiliateCampaign;
+import com.zosh.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -16,4 +17,7 @@ public interface AffiliateCampaignRepository extends JpaRepository<AffiliateCamp
 
     // Tìm campaign theo tên (gần đúng)
     List<AffiliateCampaign> findByNameContainingIgnoreCase(String name);
+
+
+
 }

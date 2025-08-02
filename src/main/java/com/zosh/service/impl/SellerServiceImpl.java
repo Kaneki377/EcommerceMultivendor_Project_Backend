@@ -138,7 +138,7 @@ public class SellerServiceImpl implements SellerService {
 
         if (seller.getBankDetails() != null
                 && seller.getBankDetails().getAccountHolderName() != null
-                && seller.getBankDetails().getIfscCode() != null
+                && seller.getBankDetails().getBankName() != null
                 && seller.getBankDetails().getAccountNumber() != null
         ) {
 
@@ -148,8 +148,8 @@ public class SellerServiceImpl implements SellerService {
             existingSeller.getBankDetails().setAccountNumber(
                     seller.getBankDetails().getAccountNumber()
             );
-            existingSeller.getBankDetails().setIfscCode(
-                    seller.getBankDetails().getIfscCode()
+            existingSeller.getBankDetails().setBankName(
+                    seller.getBankDetails().getBankName()
             );
         }
         if (seller.getPickupAddress() != null

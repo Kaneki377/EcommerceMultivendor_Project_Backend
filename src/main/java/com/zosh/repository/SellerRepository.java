@@ -14,6 +14,5 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
     */
     Seller findByAccount_Username(String accountUsername);
     Seller findByAccount_Email(String accountEmail);
-
     List<Seller> findByAccountStatus(AccountStatus accountStatus);
 }
