@@ -1,5 +1,6 @@
 package com.zosh.exceptions;
 
+import com.zosh.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -61,6 +62,24 @@ public class GlobalException {
     }
     @ExceptionHandler(KocException.class)
     public ResponseEntity<ErrorDetails> handleCustomerException(KocException ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails();
+        errorDetails.setError(ex.getMessage());
+        errorDetails.setDetails(request.getDescription(false));
+        errorDetails.setTimestamp(LocalDateTime.now());
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidRoleLoginException.class)
+    public ResponseEntity<ErrorDetails> handleInvalidRole(InvalidRoleLoginException ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails();
+        errorDetails.setError(ex.getMessage());
+        errorDetails.setDetails(request.getDescription(false));
+        errorDetails.setTimestamp(LocalDateTime.now());
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(LoginException.class)
+    public ResponseEntity<ErrorDetails> handleInvalidRole(LoginException ex, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails();
         errorDetails.setError(ex.getMessage());
         errorDetails.setDetails(request.getDescription(false));

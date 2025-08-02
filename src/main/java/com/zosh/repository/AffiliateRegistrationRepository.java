@@ -1,20 +1,28 @@
 package com.zosh.repository;
 
-import com.zosh.domain.RegistrationStatus;
 import com.zosh.model.AffiliateRegistration;
+import com.zosh.model.AffiliateCampaign;
+import com.zosh.model.Koc;
+import com.zosh.domain.RegistrationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
-@Repository
 public interface AffiliateRegistrationRepository extends JpaRepository<AffiliateRegistration, Long> {
-    // Tìm registration theo kocId
-    List<AffiliateRegistration> findByKocId(Long kocId);
 
-    // Tìm registration theo campaignId
-    List<AffiliateRegistration> findByCampaignId(Long campaignId);
+    // Kiểm tra KOC đã đăng ký campaign này chưa (dùng để tránh trùng)
+    boolean existsByKocAndCampaign(Koc koc, AffiliateCampaign campaign);
 
-    // Tìm registration theo trạng thái
-    List<AffiliateRegistration> findByStatus(RegistrationStatus status);
+    // Lấy danh sách KOC đã đăng ký 1 chiến dịch
+    List<AffiliateRegistration> findByCampaign_Id(Long campaignId);
+
+    // Lấy tất cả đăng ký cho campaign của seller
+    List<AffiliateRegistration> findByCampaign_Seller_Id(Long sellerId);
+
+    // Lấy tất cả đăng ký của 1 KOC
+    List<AffiliateRegistration> findByKoc_Id(Long kocId);
+
+    // Optional: lọc theo status
+    List<AffiliateRegistration> findByCampaign_Seller_IdAndStatus(Long sellerId, RegistrationStatus status);
 }

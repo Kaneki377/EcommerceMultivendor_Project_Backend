@@ -3,6 +3,7 @@ package com.zosh.service.impl;
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.USER_ROLE;
 import com.zosh.exceptions.CustomerException;
+import com.zosh.exceptions.InvalidRoleLoginException;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.*;
 import com.zosh.repository.*;
@@ -15,6 +16,7 @@ import com.zosh.service.EmailService;
 import com.zosh.utils.OtpUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,11 +26,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 
 @Service
@@ -44,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final CustomUserServiceImpl customUserService;
     private final AccountRepository accountRepository;
+    private final SellerRepository sellerRepository;
 
     @Override
     public void sentSignUpOtp(String email) throws Exception {
@@ -150,28 +151,59 @@ public class AuthServiceImpl implements AuthService {
         String username = req.getUsername();
         String password = req.getPassword();
 
-
-        //Gọi hàm authenticateWithPassword(...) để xác minh người dùng có tồn tại và username/password có hợp lệ hay không.
-
+        // 1. Xác thực tài khoản
         Authentication authentication = authenticateWithPassword(username, password);
 
-        //Thông báo với Spring Security: “Người dùng này đã đăng nhập thành công”
+        // 2. Set vào SecurityContext
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        //Tạo JWT token từ thông tin người dùng.
+        // 3. Kiểm tra tài khoản có phải Customer hay không
+        Customer customer = customerRepository.findByAccount_Username(username);
+        if (customer == null) {
+            throw new InvalidRoleLoginException("Only Customer or KOC accounts are allowed to log in");
+        }
+
+        // 4. Tạo JWT
         String token = jwtProvider.generateToken(authentication);
 
+        // 5. Tạo AuthResponse
         AuthResponse authResponse = new AuthResponse();
         authResponse.setJwt(token);
         authResponse.setMessage("Login successful!");
-
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        String roleName = authorities.isEmpty()?null:authorities.iterator().next().getAuthority();
-
-        authResponse.setRole(USER_ROLE.valueOf(roleName));
+        authResponse.setRole(customer.isKoc() ? USER_ROLE.ROLE_KOC : USER_ROLE.ROLE_CUSTOMER);
 
         return authResponse;
     }
+
+    @Override
+    public AuthResponse loginSeller(LoginRequest req) throws Exception {
+        String username = req.getUsername();
+        String password = req.getPassword();
+
+        // 1. Xác thực username/password
+        Authentication authentication = authenticateWithPassword(username, password);
+
+        // 2. Set context
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // 3. Kiểm tra xem có phải tài khoản Seller hay không
+        Seller seller = sellerRepository.findByAccount_Username(username);
+        if (seller == null) {
+            throw new InvalidRoleLoginException("Only Seller accounts are allowed to log in");
+        }
+
+        // 4. Tạo JWT
+        String token = jwtProvider.generateToken(authentication);
+
+        // 5. Trả về AuthResponse
+        AuthResponse res = new AuthResponse();
+        res.setJwt(token);
+        res.setMessage("Login successful!");
+        res.setRole(USER_ROLE.ROLE_SELLER);
+
+        return res;
+    }
+
     //Xác thực bằng otp
     private Authentication authenticate(String username, String otp) throws Exception {
         UserDetails userDetails = customUserService.loadUserByUsername(username);
@@ -197,14 +229,14 @@ public class AuthServiceImpl implements AuthService {
         UserDetails userDetails = customUserService.loadUserByUsername(username);
 
         if (userDetails == null) {
-            throw new BadCredentialsException("Tài khoản không tồn tại");
+            throw new BadCredentialsException("Account doesn't exist");
         }
 
         // Ép về Account để lấy password gốc (nếu bạn custom UserDetails), hoặc lấy password từ userDetails
         String encodedPassword = userDetails.getPassword();
 
         if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
-            throw new BadCredentialsException("Sai mật khẩu");
+            throw new BadCredentialsException("Wrong password");
         }
 
         return new UsernamePasswordAuthenticationToken(

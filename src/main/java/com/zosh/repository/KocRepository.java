@@ -26,4 +26,7 @@ public interface KocRepository extends JpaRepository<Koc, Long> {
     List<Koc> findByJoinedAtAfter(LocalDateTime joinedAt);
 
     Optional<Koc> findByKocId(String kocId);
+
+    Optional<Koc> findByCustomer_Account_Username(String username);
+
 }

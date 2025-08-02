@@ -1,6 +1,7 @@
 package com.zosh.service.impl;
 
 import com.zosh.domain.USER_ROLE;
+import com.zosh.exceptions.LoginException;
 import com.zosh.model.Account;
 import com.zosh.model.Customer;
 import com.zosh.model.Role;
@@ -31,15 +32,15 @@ public class CustomUserServiceImpl implements UserDetailsService {
     private final KocRepository kocRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws LoginException {
         Account account = accountRepository.findByUsername(username);
 
         if (account == null) {
-            throw new UsernameNotFoundException("Account does not exist");
+            throw new LoginException("Account does not exist");
         }
 
         if (!account.getIsEnabled()) {
-            throw new UsernameNotFoundException("Your account has been disabled");
+            throw new LoginException("Your account has been disabled");
         }
 
         //Kiểm tra xem là Seller hay Customer
@@ -50,7 +51,7 @@ public class CustomUserServiceImpl implements UserDetailsService {
             if(seller !=null ){
                 if(!seller.isEmailVerified())
                 {
-                    throw new BadCredentialsException("Email unverified account");
+                    throw new LoginException("Email unverified account");
                 }
                 return buildUserDetails(seller.getAccount().getUsername(), seller.getAccount().getPassword(),USER_ROLE.ROLE_SELLER);
             }
@@ -61,7 +62,7 @@ public class CustomUserServiceImpl implements UserDetailsService {
             Role role = customer.getAccount().getRole(); // Lấy role thực tế từ DB (ROLE_CUSTOMER hoặc ROLE_KOC)
             return buildUserDetails(customer.getAccount().getUsername(), customer.getAccount().getPassword(), USER_ROLE.valueOf(role.getName()));
         }
-        throw new UsernameNotFoundException("No user found with username - " + username);
+        throw new LoginException("No user found with username - " + username);
     }
 
 

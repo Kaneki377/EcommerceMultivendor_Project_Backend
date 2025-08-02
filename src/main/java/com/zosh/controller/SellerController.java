@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/sellers")
@@ -34,12 +35,11 @@ public class SellerController {
     private final JwtProvider jwtProvider;
     private final AuthService authService;
     private final SellerReportService sellerReportService;
-    private final AffiliateCampaignService affiliateCampaignService;
 
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginSeller(@Valid @RequestBody LoginRequest req) throws Exception {
-        AuthResponse authResponse = authService.signIn(req);
+        AuthResponse authResponse = authService.loginSeller(req);
         return ResponseEntity.ok(authResponse);
     }
 
@@ -82,17 +82,7 @@ public class SellerController {
 
         return new ResponseEntity<>(savedSeller, HttpStatus.CREATED);
     }
-        @PostMapping("/campaigns")
-        @PreAuthorize("hasRole('SELLER')")
-        public ResponseEntity<AffiliateCampaign> createAffiliateCampaign(
-                @Valid @RequestBody CreateAffiliateCampaignRequest request,
-                @RequestHeader("Authorization") String jwt) throws Exception {
 
-            Seller seller = sellerService.getSellerProfile(jwt);
-
-            AffiliateCampaign campaign = affiliateCampaignService.createCampaign(seller.getId(), request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(campaign);
-        }
     @GetMapping("/{id}")
     public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws Exception {
         Seller seller = sellerService.getSellerById(id);
