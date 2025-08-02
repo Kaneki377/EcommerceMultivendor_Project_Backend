@@ -29,8 +29,12 @@ public class AppConfig {
         http.sessionManagement(management->management.sessionCreationPolicy(
                 SessionCreationPolicy.STATELESS
         )).authorizeHttpRequests(authorize->authorize
-                .requestMatchers("/api/**").authenticated() //bắt buộc yêu cầu phải đã xác thực.
+
                 .requestMatchers("/api/product/*/reviews").permitAll()
+                .requestMatchers("/api/koc/create").hasAnyRole("CUSTOMER", "ADMIN")
+                .requestMatchers("/api/koc/**").authenticated() // Dựa vào @PreAuthorize
+                .requestMatchers("/api/**").authenticated() //bắt buộc yêu cầu phải đã xác thực.
+
                 .anyRequest().permitAll()
         ).addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
                 .csrf(csrf->csrf.disable())

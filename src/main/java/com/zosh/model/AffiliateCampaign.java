@@ -30,5 +30,7 @@ public class AffiliateCampaign {
     @Column(name = "create_at")
     private LocalDateTime createAt;
 
+    @Column(name = "expried")
+    private LocalDateTime exprired;
     private Boolean active;
 }

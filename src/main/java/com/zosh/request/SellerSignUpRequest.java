@@ -16,7 +16,6 @@ public class SellerSignUpRequest {
     private String sellerName;
 
     @Valid
-    @NotNull(message = "Thông tin doanh nghiệp không được để trống")
     private BusinessDetailRequest businessDetails;
 
     @Valid

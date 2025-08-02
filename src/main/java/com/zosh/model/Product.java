@@ -21,6 +21,7 @@ public class Product {
 
     private String title;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private int mrpPrice;

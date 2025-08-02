@@ -17,6 +17,7 @@ public class DataInitializationComponent implements CommandLineRunner {
         createRoleIfNotExist("ROLE_CUSTOMER");
         createRoleIfNotExist("ROLE_SELLER");
         createRoleIfNotExist("ROLE_MANAGER");
+        createRoleIfNotExist("ROLE_KOC");
     }
 
     private void createRoleIfNotExist(String roleName) {

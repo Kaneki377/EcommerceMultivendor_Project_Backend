@@ -27,7 +27,7 @@ public class CustomerController {
 
     //REST API endpoint GET để lấy thông tin profile của Customer
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
-    @GetMapping("/users/profile")
+    @GetMapping("/api/users/profile")
     public ResponseEntity<Customer> createUserHandler(@RequestHeader("Authorization") String jwt) throws Exception {
 
         Customer customer = customerService.findCustomerByJwtToken(jwt);

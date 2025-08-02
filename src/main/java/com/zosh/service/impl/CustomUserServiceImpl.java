@@ -3,9 +3,11 @@ package com.zosh.service.impl;
 import com.zosh.domain.USER_ROLE;
 import com.zosh.model.Account;
 import com.zosh.model.Customer;
+import com.zosh.model.Role;
 import com.zosh.model.Seller;
 import com.zosh.repository.AccountRepository;
 import com.zosh.repository.CustomerRepository;
+import com.zosh.repository.KocRepository;
 import com.zosh.repository.SellerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -26,18 +28,18 @@ public class CustomUserServiceImpl implements UserDetailsService {
     private final CustomerRepository customerRepository;
     private final SellerRepository sellerRepository;
     private final AccountRepository accountRepository;
-
+    private final KocRepository kocRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Account account = accountRepository.findByUsername(username);
 
         if (account == null) {
-            throw new UsernameNotFoundException("Tài khoản không tồn tại");
+            throw new UsernameNotFoundException("Account does not exist");
         }
 
         if (!account.getIsEnabled()) {
-            throw new UsernameNotFoundException("Tài khoản của bạn đã bị vô hiệu");
+            throw new UsernameNotFoundException("Your account has been disabled");
         }
 
         //Kiểm tra xem là Seller hay Customer
@@ -48,16 +50,18 @@ public class CustomUserServiceImpl implements UserDetailsService {
             if(seller !=null ){
                 if(!seller.isEmailVerified())
                 {
-                    throw new BadCredentialsException("Tài khoản chưa xác minh email");
+                    throw new BadCredentialsException("Email unverified account");
                 }
                 return buildUserDetails(seller.getAccount().getUsername(), seller.getAccount().getPassword(),USER_ROLE.ROLE_SELLER);
             }
 
-            Customer customer = customerRepository.findByAccount_Username(username);
-            if(customer != null && customer.getAccount() != null){
-                return buildUserDetails(customer.getAccount().getUsername(),customer.getAccount().getPassword(),USER_ROLE.ROLE_CUSTOMER);
-            }
-        throw new UsernameNotFoundException("Không tìm thấy người dùng với username - " + username);
+        // Nếu là Customer hoặc KOC
+        Customer customer = customerRepository.findByAccount_Username(username);
+        if (customer != null && customer.getAccount() != null) {
+            Role role = customer.getAccount().getRole(); // Lấy role thực tế từ DB (ROLE_CUSTOMER hoặc ROLE_KOC)
+            return buildUserDetails(customer.getAccount().getUsername(), customer.getAccount().getPassword(), USER_ROLE.valueOf(role.getName()));
+        }
+        throw new UsernameNotFoundException("No user found with username - " + username);
     }
 
 

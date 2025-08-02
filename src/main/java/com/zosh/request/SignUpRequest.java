@@ -13,6 +13,7 @@ public class SignUpRequest {
 
     @NotBlank(message = "Username không được để trống")
     @Size(max = 50, message = "Username không được vượt quá 50 ký tự")
+    @Size(min = 3, message = "Username không được ít hơn 3 ký tự")
     private String username;
 
     @NotBlank(message = "Password không được để trống")

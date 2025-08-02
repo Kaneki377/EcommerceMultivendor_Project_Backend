@@ -85,12 +85,14 @@ public class AuthServiceImpl implements AuthService {
 
         Account existingAccountUsername = accountRepository.findByUsername(req.getAccount().getUsername());
         if (existingAccountUsername != null) {
-            throw new CustomerException("Username đã tồn tại, vui lòng chọn username khác !");
+            throw new CustomerException("The username is already taken. Please choose another one.");
         }
+
         Account existingAccountEmail = accountRepository.findByEmail(req.getAccount().getEmail());
         if (existingAccountEmail != null) {
-            throw new CustomerException("Email đã tồn tại, vui lòng chọn username khác !");
+            throw new CustomerException("An account with this email already exists. Please use a different email.");
         }
+
         if(verificationCode == null || !verificationCode.getOtp().equals(req.getAccount().getOtp())){
             throw new CustomerException("Wrong otp ...");
         }
@@ -110,7 +112,7 @@ public class AuthServiceImpl implements AuthService {
             // Gán Role
             Role role = roleRepository.findByName(USER_ROLE.ROLE_CUSTOMER.name());
             if (role == null) {
-                throw new CustomerException("Role không tồn tại!");
+                throw new CustomerException("Role does not exist!");
             }
             account.setRole(role);
 

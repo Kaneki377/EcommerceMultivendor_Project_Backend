@@ -6,6 +6,7 @@ import com.zosh.model.Customer;
 import com.zosh.model.Seller;
 import com.zosh.repository.AccountRepository;
 import com.zosh.repository.CustomerRepository;
+import com.zosh.repository.KocRepository;
 import com.zosh.repository.SellerRepository;
 import com.zosh.service.impl.CustomUserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,14 +27,14 @@ public class CustomUserServiceImplTest {
     private SellerRepository sellerRepository;
     private AccountRepository accountRepository;
     private CustomUserServiceImpl customUserService;
-
+    private KocRepository kocRepository;
     @BeforeEach
     void setup() {
         customerRepository = mock(CustomerRepository.class);
         sellerRepository = mock(SellerRepository.class);
         accountRepository = mock(AccountRepository.class);
 
-        customUserService = new CustomUserServiceImpl(customerRepository, sellerRepository, accountRepository);
+        customUserService = new CustomUserServiceImpl(customerRepository, sellerRepository, accountRepository,kocRepository);
     }
 
     @Test
