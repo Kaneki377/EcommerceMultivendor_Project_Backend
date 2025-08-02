@@ -26,7 +26,7 @@ public class CustomerController {
     private final HomeService homeService;
 
     //REST API endpoint GET để lấy thông tin profile của Customer
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER','KOC')")
     @GetMapping("/api/users/profile")
     public ResponseEntity<Customer> createUserHandler(@RequestHeader("Authorization") String jwt) throws Exception {
 

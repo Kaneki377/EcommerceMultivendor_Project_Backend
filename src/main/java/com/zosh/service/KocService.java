@@ -1,7 +1,8 @@
 package com.zosh.service;
 
 import com.zosh.model.Koc;
+import com.zosh.request.CreateKocRequest;
 
 public interface KocService {
-    Koc createKoc(Long customerId, String socialLink);
+    Koc createKoc(CreateKocRequest request) ;
 }

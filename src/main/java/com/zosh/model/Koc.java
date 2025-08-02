@@ -23,8 +23,17 @@ public class Koc {
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
-    @Column(name = "social_link")
-    private String socialLink;
+    @Column(name = "facebook_link", length = 255)
+    private String facebookLink;
+
+    @Column(name = "instagram_link", length = 255)
+    private String instagramLink;
+
+    @Column(name = "tiktok_link", length = 255)
+    private String tiktokLink;
+
+    @Column(name = "youtube_link", length = 255)
+    private String youtubeLink;
 
     @Column(name = "joined_at")
     private LocalDateTime joinedAt;

@@ -59,4 +59,12 @@ public class GlobalException {
 
         return new ResponseEntity<ErrorDetails>(err,HttpStatus.BAD_REQUEST);
     }
+    @ExceptionHandler(KocException.class)
+    public ResponseEntity<ErrorDetails> handleCustomerException(KocException ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails();
+        errorDetails.setError(ex.getMessage());
+        errorDetails.setDetails(request.getDescription(false));
+        errorDetails.setTimestamp(LocalDateTime.now());
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
 }

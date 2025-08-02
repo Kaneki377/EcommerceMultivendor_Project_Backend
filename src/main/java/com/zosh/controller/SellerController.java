@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -87,6 +88,7 @@ public class SellerController {
     }
 
     @GetMapping("/profile")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<Seller> getSellerByJwt(
             @RequestHeader("Authorization") String jwt) throws Exception {
         //String email = jwtProvider.getEmailFromJwtToken(jwt);
@@ -96,6 +98,7 @@ public class SellerController {
     }
 
     @GetMapping("/report")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<SellerReport> getSellerReport(
             @RequestHeader("Authorization") String jwt) throws Exception {
         Seller seller = sellerService.getSellerProfile(jwt);
