@@ -66,4 +66,10 @@ public class AuthController {
 
         return ResponseEntity.ok(authResponse);
     }
+    @PostMapping("sellers/login")
+    public ResponseEntity<AuthResponse> loginSeller(@Valid @RequestBody LoginRequest req) throws Exception {
+        AuthResponse authResponse = authService.loginSeller(req);
+        authResponse.setMessage("Welcome Seller!");
+        return ResponseEntity.ok(authResponse);
+    }
 }

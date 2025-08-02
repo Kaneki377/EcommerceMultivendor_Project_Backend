@@ -37,12 +37,6 @@ public class SellerController {
     private final SellerReportService sellerReportService;
 
 
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> loginSeller(@Valid @RequestBody LoginRequest req) throws Exception {
-        AuthResponse authResponse = authService.loginSeller(req);
-        return ResponseEntity.ok(authResponse);
-    }
-
     @PatchMapping("/verify/{otp}")
     public ResponseEntity<Seller> verifySellerEmail(
             @PathVariable String otp) throws Exception {

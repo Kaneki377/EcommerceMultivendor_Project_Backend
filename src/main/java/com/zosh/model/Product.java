@@ -1,5 +1,6 @@
 package com.zosh.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -53,6 +54,7 @@ public class Product {
     private List<Review> reviews = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "affiliate_campaign_id")
     private AffiliateCampaign affiliateCampaign;
     private boolean in_stock = true;
