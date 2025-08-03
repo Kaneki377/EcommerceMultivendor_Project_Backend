@@ -27,4 +27,6 @@ public interface PaymentService {
     String createPaypalPaymentLink(Long amount, Long paymentOrderId) throws PayPalRESTException;
 
     Payment executePaypalPayment(String paymentId, String payerId) throws PayPalRESTException;
+
+    void executeAndCompletePaypalOrder(Customer customer, String paymentId, String payerId, Long paymentOrderId) throws Exception;
 }

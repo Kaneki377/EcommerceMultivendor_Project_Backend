@@ -2,6 +2,7 @@ package com.zosh.service.impl;
 
 import com.paypal.api.payments.*;
 import com.paypal.api.payments.Payment;
+import com.paypal.api.payments.Transaction;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
 import com.stripe.Stripe;
@@ -11,15 +12,19 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.zosh.domain.PaymentOrderStatus;
 import com.zosh.domain.PaymentStatus;
-import com.zosh.model.Customer;
+import com.zosh.model.*;
 import com.zosh.model.Order;
-import com.zosh.model.PaymentOrder;
 import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
 import com.zosh.service.PaymentService;
+import com.zosh.service.SellerReportService;
+import com.zosh.service.SellerService;
+import com.zosh.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Arrays;
 import java.util.Set;
 
@@ -30,6 +35,9 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentOrderRepository paymentOrderRepository;
     private final OrderRepository orderRepository;
     private final APIContext apiContext;
+    private final TransactionService transactionService;
+    private final SellerService sellerService;
+    private final SellerReportService sellerReportService;
 
     @Value("${stripe.api.key}")
     private String stripeSecretKey;
@@ -100,8 +108,8 @@ public class PaymentServiceImpl implements PaymentService {
         SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:3000/payment-success/"+orderId)
-                .setCancelUrl("http://localhost:3000/payment/cancel")
+                .setSuccessUrl("http://localhost:5173/payment-success/"+orderId)
+                .setCancelUrl("http://localhost:5173/payment/cancel")
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
@@ -114,7 +122,7 @@ public class PaymentServiceImpl implements PaymentService {
                                         .build()
                                 ).build()
                         ).build()
-                ).build(); //Can set PAypal instead of CARD if implement PAPAL Payment
+                ).build();
 
         Session session = Session.create(params);
 
@@ -125,8 +133,8 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public String createPaypalPaymentLink(Long amount, Long paymentOrderId) throws PayPalRESTException {
         Amount paymentAmount = new Amount();
-        paymentAmount.setCurrency("USD"); // Hoặc bạn có thể truyền currency vào
-        // PayPal yêu cầu định dạng số thập phân, không nhân 100 như Razorpay
+        paymentAmount.setCurrency("USD");
+
         paymentAmount.setTotal(String.format("%.2f", (double) amount));
 
         Transaction transaction = new Transaction();
@@ -155,9 +163,9 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setPayer(payer);
         payment.setTransactions(Arrays.asList(transaction));
 
-        // Quan trọng: Xây dựng URL callback với paymentOrderId
-        String cancelUrl = "http://localhost:3000/payment/cancel"; // URL của frontend
-        String successUrl = "http://localhost:8080/api/payment/paypal/success?paymentOrderId=" + paymentOrderId; // URL của backend
+
+        String cancelUrl = "http://localhost:5173/payment/cancel"; // URL của frontend
+        String successUrl = "http://localhost:5173/payment/paypal/callback?paymentOrderId=" + paymentOrderId; // URL của backend
 
         RedirectUrls redirectUrls = new RedirectUrls();
         redirectUrls.setCancelUrl(cancelUrl);
@@ -173,5 +181,56 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentExecution paymentExecution = new PaymentExecution();
         paymentExecution.setPayerId(payerId);
         return payment.execute(apiContext, paymentExecution);
+    }
+
+    @Override
+    @Transactional // Đảm bảo tất cả các thao tác DB hoặc thành công hoặc rollback
+    public void executeAndCompletePaypalOrder(Customer customer, String paymentId, String payerId, Long paymentOrderId) throws Exception {
+        // 1. Tìm PaymentOrder
+        PaymentOrder paymentOrder = getPaymentOrderById(paymentOrderId);
+
+        // 2. Kiểm tra bảo mật: Đảm bảo người dùng đang thực hiện là chủ của đơn hàng
+        if (!paymentOrder.getCustomer().getId().equals(customer.getId())) {
+            throw new Exception("You are not authorized to complete this payment.");
+        }
+
+        try {
+            // 3. Thực thi thanh toán với PayPal
+            Payment payment = executePaypalPayment(paymentId, payerId);
+
+            // 4. Kiểm tra kết quả
+            if ("approved".equalsIgnoreCase(payment.getState())) {
+                // 5. Xử lý logic khi thanh toán thành công
+                paymentOrder.setPaymentLinkId(payment.getId()); // Lưu paymentId của PayPal
+                paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+                paymentOrderRepository.save(paymentOrder);
+
+                // Cập nhật trạng thái các Order con, tạo Transaction và SellerReport
+                for (Order order : paymentOrder.getOrders()) {
+                    order.setPaymentStatus(PaymentStatus.COMPLETED);
+                    orderRepository.save(order);
+
+                    // Tạo transaction
+                    transactionService.createTransaction(order);
+
+                    // Cập nhật report cho seller
+                    Seller seller = sellerService.getSellerById(order.getSellerId());
+                    SellerReport report = sellerReportService.getSellerReport(seller);
+                    report.setTotalOrders(report.getTotalOrders() + 1);
+                    report.setTotalEarnings(report.getTotalEarnings() + order.getTotalSellingPrice());
+                    report.setTotalSales(report.getTotalSales() + order.getOrderItems().size());
+                    sellerReportService.updateSellerReport(report);
+                }
+            } else {
+                // Nếu trạng thái không phải "approved"
+                throw new Exception("PayPal payment was not approved.");
+            }
+        } catch (PayPalRESTException e) {
+            // 6. Xử lý khi có lỗi từ PayPal
+            paymentOrder.setStatus(PaymentOrderStatus.FAILED);
+            paymentOrderRepository.save(paymentOrder);
+            // Ném lại lỗi để controller có thể xử lý
+            throw new Exception("Failed to execute PayPal payment: " + e.getMessage());
+        }
     }
 }
