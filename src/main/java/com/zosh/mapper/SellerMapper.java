@@ -23,6 +23,7 @@ public class SellerMapper {
         businessDetails.setBusinessAddress(request.getBusinessAddress());
         businessDetails.setBusinessEmail(request.getBusinessEmail());
         businessDetails.setBusinessMobile(request.getBusinessMobile());
+        businessDetails.setBusinessLicenseUrl(request.getBusinessLicenseUrl());
         businessDetails.setLogo(request.getLogo());
         businessDetails.setBanner(request.getBanner());
         return businessDetails;

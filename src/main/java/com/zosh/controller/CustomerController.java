@@ -1,9 +1,11 @@
 package com.zosh.controller;
 
+import com.zosh.dto.CustomerProfileResponse;
 import com.zosh.model.Customer;
 import com.zosh.model.Home;
 import com.zosh.model.HomeCategory;
 import com.zosh.repository.CustomerRepository;
+import com.zosh.request.UpdateCustomerRequest;
 import com.zosh.service.CustomerService;
 import com.zosh.service.HomeCategoryService;
 import com.zosh.service.HomeService;
@@ -26,14 +28,24 @@ public class CustomerController {
     private final HomeService homeService;
 
     //REST API endpoint GET để lấy thông tin profile của Customer
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER','KOC')")
     @GetMapping("/api/users/profile")
-    public ResponseEntity<Customer> createUserHandler(@RequestHeader("Authorization") String jwt) throws Exception {
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER','KOC')")
+    public ResponseEntity<CustomerProfileResponse> getCustomerProfile(
+            @RequestHeader("Authorization") String jwt
+    ) throws Exception {
         Customer customer = customerService.findCustomerByJwtToken(jwt);
-
-        return  ResponseEntity.ok().body(customer); //// JSON nếu customer là object
+        return ResponseEntity.ok(new CustomerProfileResponse(customer));
     }
+    @PatchMapping("/api/users/profile")
+    @PreAuthorize("hasAnyRole('CUSTOMER','KOC')")
+    public ResponseEntity<CustomerProfileResponse> updateProfile(
+            @RequestBody UpdateCustomerRequest request,
+            @RequestHeader("Authorization") String jwt
+    ) {
+        CustomerProfileResponse updated = customerService.updateProfile(jwt, request);
+        return ResponseEntity.ok(updated);
+    }
+
 
     @GetMapping("/home-page")
     public ResponseEntity<Home> getHomePageData() {

@@ -34,6 +34,7 @@ public class Seller {
     @OneToOne(cascade = CascadeType.ALL)
     private Address pickupAddress = new Address();
 
+
     private String taxCode;
 
     private boolean isEmailVerified = false;

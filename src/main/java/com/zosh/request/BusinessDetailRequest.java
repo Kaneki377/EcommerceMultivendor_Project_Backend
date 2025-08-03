@@ -13,6 +13,8 @@ public class BusinessDetailRequest {
     @Email(message = "Email doanh nghiệp không hợp lệ")
     private String businessEmail;
 
+    private String businessLicenseUrl;
+
     private String businessMobile;
 
     private String businessAddress;
