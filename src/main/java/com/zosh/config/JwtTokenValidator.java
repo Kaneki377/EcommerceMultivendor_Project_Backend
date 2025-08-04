@@ -26,7 +26,7 @@ public class JwtTokenValidator extends OncePerRequestFilter {
     //và gán vào SecurityContext của Spring Security
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String jwt = request.getHeader("Authorization");
+        String jwt = request.getHeader(JwtConstant.JWT_HEADER);
 
         //Bearer jwt
         if(jwt!=null){
@@ -36,12 +36,12 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                 Claims claims = Jwts.parserBuilder().setSigningKey(key).build()
                         .parseClaimsJws(jwt).getBody();
 
-                String email = String.valueOf(claims.get("email"));
+                String username = String.valueOf(claims.get("username"));
                 String authorities = String.valueOf(claims.get("authorities"));
-
+                System.out.println("authorities -------- "+authorities);
                 List<GrantedAuthority> auths = AuthorityUtils.commaSeparatedStringToAuthorityList(authorities);
 
-                Authentication authentication = new UsernamePasswordAuthenticationToken(email,null, auths);
+                Authentication authentication = new UsernamePasswordAuthenticationToken(username,null, auths);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }catch (Exception e){

@@ -1,5 +1,6 @@
 package com.zosh.controller;
 
+import com.zosh.exceptions.CartItemException;
 import com.zosh.exceptions.CustomerException;
 import com.zosh.exceptions.ProductException;
 import com.zosh.model.Cart;
@@ -47,7 +48,7 @@ public class CartController {
     public ResponseEntity<CartItem> addItemToCart(
             @RequestBody AddItemRequest request,
             @RequestHeader("Authorization") String jwt
-    ) throws ProductException, Exception {
+    ) throws ProductException, CustomerException {
         Customer customer = customerService.findCustomerByJwtToken(jwt);
         Product product = productService.findProductById(request.getProductId());
 
@@ -66,13 +67,13 @@ public class CartController {
     public ResponseEntity<ApiResponse> deleteCartItemHandler(
             @PathVariable Long cartItemId,
             @RequestHeader("Authorization") String jwt
-    ) throws Exception {
+    ) throws CartItemException, CustomerException {
         Customer customer = customerService.findCustomerByJwtToken(jwt);
         cartItemService.removeCartItem(customer.getId(), cartItemId);
 
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setMessage("Item Remove From Cart Successfully");
-
+        apiResponse.setStatus(true);
         return new ResponseEntity<>(apiResponse, HttpStatus.ACCEPTED);
     }
 
@@ -81,7 +82,7 @@ public class CartController {
             @PathVariable Long cartItemId,
             @RequestBody CartItem cartItem,
             @RequestHeader("Authorization") String jwt
-    ) throws Exception {
+    ) throws CartItemException, CustomerException {
         Customer customer = customerService.findCustomerByJwtToken(jwt);
 
         CartItem updatedCartItem = null;
