@@ -3,6 +3,7 @@ package com.zosh.service.impl;
 import com.zosh.domain.AddressOwnerType;
 import com.zosh.domain.OrderStatus;
 import com.zosh.domain.PaymentStatus;
+import com.zosh.exceptions.OrderException;
 import com.zosh.model.*;
 import com.zosh.repository.AddressRepository;
 import com.zosh.repository.OrderItemRepository;
@@ -89,9 +90,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order findOrderById(long orderId) throws Exception {
+    public Order findOrderById(long orderId) throws OrderException {
         return orderRepository.findById(orderId).orElseThrow(()->
-                new Exception("Order not found..."));
+                new OrderException("Order not found..."));
     }
 
     @Override
@@ -105,7 +106,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws Exception {
+    public Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws OrderException {
         Order order = findOrderById(orderId);
         order.setOrderStatus(orderStatus);
 
@@ -128,5 +129,12 @@ public class OrderServiceImpl implements OrderService {
     public OrderItem getOrderItemById(long id) throws Exception {
         return orderItemRepository.findById(id).orElseThrow(()->
                 new Exception("Order item not exist..."));
+    }
+
+    @Override
+    public void deleteOrder(Long orderId) throws OrderException {
+        Order order = findOrderById(orderId);
+
+        orderRepository.deleteById(orderId);
     }
 }

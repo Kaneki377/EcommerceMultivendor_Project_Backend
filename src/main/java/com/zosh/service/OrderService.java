@@ -12,13 +12,13 @@ public interface OrderService {
 
     Set<Order> createOrder(Customer customer, Address shippingAddress, Cart cart);
 
-    Order findOrderById(long orderId) throws Exception;
+    Order findOrderById(long orderId) throws OrderException;
 
     List<Order> customerOrderHistory(Long customerId);
 
     List<Order> sellersOrder(Long sellerId);
 
-    Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws Exception;
+    Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws OrderException;
 
     Order cancelOrder(long orderId, Customer customer) throws Exception;
 
