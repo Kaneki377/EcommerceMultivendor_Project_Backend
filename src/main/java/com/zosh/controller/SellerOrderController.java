@@ -3,6 +3,7 @@ package com.zosh.controller;
 import com.zosh.domain.OrderStatus;
 import com.zosh.model.Order;
 import com.zosh.model.Seller;
+import com.zosh.response.ApiResponse;
 import com.zosh.service.OrderService;
 import com.zosh.service.SellerService;
 import lombok.RequiredArgsConstructor;
@@ -41,5 +42,14 @@ public class SellerOrderController {
         Order order = orderService.updateOrderStatus(orderId, orderStatus);
 
         return new ResponseEntity<>(order, HttpStatus.ACCEPTED);
+    }
+
+    @DeleteMapping("/{orderId}/delete")
+    public ResponseEntity<ApiResponse> deleteOrderHandler(@PathVariable Long orderId,
+                                                          @RequestHeader("Authorization") String jwt) throws OrderException{
+        orderService.deleteOrder(orderId);
+        ApiResponse res=new ApiResponse("Order Deleted Successfully",true);
+        System.out.println("delete method working....");
+        return new ResponseEntity<>(res,HttpStatus.ACCEPTED);
     }
 }
