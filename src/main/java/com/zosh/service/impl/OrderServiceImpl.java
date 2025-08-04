@@ -100,6 +100,7 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findByCustomerId(customerId);
     }
 
+    //Get ShopOrder
     @Override
     public List<Order> sellersOrder(Long sellerId) {
         return orderRepository.findBySellerIdOrderByOrderDateDesc(sellerId);
@@ -125,11 +126,6 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.save(order);
     }
 
-    @Override
-    public OrderItem getOrderItemById(long id) throws Exception {
-        return orderItemRepository.findById(id).orElseThrow(()->
-                new Exception("Order item not exist..."));
-    }
 
     @Override
     public void deleteOrder(Long orderId) throws OrderException {

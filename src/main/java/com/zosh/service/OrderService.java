@@ -16,13 +16,12 @@ public interface OrderService {
 
     List<Order> customerOrderHistory(Long customerId);
 
+    //Get ShopOrder
     List<Order> sellersOrder(Long sellerId);
 
     Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws OrderException;
 
     Order cancelOrder(long orderId, Customer customer) throws Exception;
-
-    OrderItem getOrderItemById(long id) throws Exception;
 
     public void deleteOrder(Long orderId) throws OrderException;
 }

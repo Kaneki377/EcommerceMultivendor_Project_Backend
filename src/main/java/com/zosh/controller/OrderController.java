@@ -41,6 +41,8 @@ public class OrderController {
 
     private final TransactionService transactionService;
 
+    private final OrderItemService orderItemService;
+
     //Tạo đơn hàng mới và tạo link thanh toán Stripe
     @PostMapping()
     public ResponseEntity<PaymentLinkResponse> createOrderHandler(
@@ -107,7 +109,7 @@ public class OrderController {
             String jwt) throws Exception {
         System.out.println("------- controller ");
         Customer customer = customerService.findCustomerByJwtToken(jwt);
-        OrderItem orderItem = orderService.getOrderItemById(orderItemId);
+        OrderItem orderItem = orderItemService.getOrderItemById(orderItemId);
         return new ResponseEntity<>(orderItem,HttpStatus.ACCEPTED);
     }
 
