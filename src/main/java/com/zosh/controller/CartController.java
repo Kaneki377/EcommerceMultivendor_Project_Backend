@@ -1,5 +1,6 @@
 package com.zosh.controller;
 
+import com.zosh.exceptions.CustomerException;
 import com.zosh.exceptions.ProductException;
 import com.zosh.model.Cart;
 import com.zosh.model.CartItem;
@@ -32,12 +33,12 @@ public class CartController {
     @GetMapping
     public ResponseEntity<Cart> findCustomerCartHandler(
             @RequestHeader("Authorization") String jwt
-    ) throws Exception {
+    ) throws CustomerException {
         Customer customer = customerService.findCustomerByJwtToken(jwt);
 
         Cart cart = cartService.findCustomerCart(customer);
 
-        //System.out.println("cart - " + cart.getCustomer().getEmail());
+        System.out.println("cart - "+ cart.getCustomer().getAccount().getEmail());
 
         return new ResponseEntity<Cart>(cart, HttpStatus.OK);
     }

@@ -9,6 +9,8 @@ import com.zosh.service.CartItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class CartItemServiceImpl implements CartItemService {
@@ -28,8 +30,9 @@ public class CartItemServiceImpl implements CartItemService {
             item.setMrpPrice(item.getQuantity() *  item.getProduct().getMrpPrice());
             item.setSellingPrice(item.getQuantity() *  item.getProduct().getSellingPrice());
             return cartItemRepository.save(item);
+        }else {
+            throw new CartItemException("You can't update this cart item");
         }
-        throw new CartItemException("You can't update this cart item");
     }
 
     @Override
@@ -46,9 +49,13 @@ public class CartItemServiceImpl implements CartItemService {
     }
 
     @Override
-    public CartItem findCartItemById(Long id) throws CartItemException {
+    public CartItem findCartItemById(Long cartItemId) throws CartItemException {
 
-        return cartItemRepository.findById(id).orElseThrow(()->
-                new CartItemException("Cart item not found with id " + id));
+        Optional<CartItem> opt=cartItemRepository.findById(cartItemId);
+
+        if(opt.isPresent()) {
+            return opt.get();
+        }
+        throw new CartItemException("cartItem not found with id : "+cartItemId);
     }
 }

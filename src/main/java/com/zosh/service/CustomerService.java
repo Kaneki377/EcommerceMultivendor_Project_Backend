@@ -6,8 +6,8 @@ import com.zosh.model.Customer;
 import com.zosh.request.UpdateCustomerRequest;
 
 public interface CustomerService {
-    Customer findCustomerByJwtToken(String jwtToken) throws Exception;
-    Customer findCustomerByEmail(String email) throws Exception;
-    Customer findCustomerByUsername(String username) throws Exception;
+    Customer findCustomerByJwtToken(String jwtToken) throws CustomerException;
+    Customer findCustomerByEmail(String email) throws CustomerException;
+    Customer findCustomerByUsername(String username) throws CustomerException;
     CustomerProfileResponse updateProfile(String jwt, UpdateCustomerRequest request) throws CustomerException;
 }

@@ -18,26 +18,26 @@ public class CustomerServiceImpl implements CustomerService {
     private final JwtProvider jwtProvider;
 
     @Override
-    public Customer findCustomerByJwtToken(String jwt) throws Exception {
+    public Customer findCustomerByJwtToken(String jwt) throws CustomerException {
 
         String username = jwtProvider.getUsernameFromJwtToken(jwt);
         return this.findCustomerByUsername(username);
     }
 
     @Override
-    public Customer findCustomerByEmail(String email) throws Exception {
+    public Customer findCustomerByEmail(String email) throws CustomerException {
         Customer customer = customerRepository.findByAccount_Email(email);
         if(customer == null){
-            throw new Exception("Customer not found with email - " + email);
+            throw new CustomerException("Customer not found with email - " + email);
         }
         return customer;
     }
 
     @Override
-    public Customer findCustomerByUsername(String username) throws Exception {
+    public Customer findCustomerByUsername(String username) throws CustomerException {
         Customer customer = customerRepository.findByAccount_Username(username);
         if(customer == null){
-                throw new Exception("Customer not found with username - " + username);
+                throw new CustomerException("Customer not found with username - " + username);
         }
         return customer;
     }
