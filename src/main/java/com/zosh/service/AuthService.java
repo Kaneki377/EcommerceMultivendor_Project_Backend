@@ -12,7 +12,7 @@ import javax.swing.*;
 public interface AuthService {
 
     void sentSignUpOtp(String email) throws Exception;
-    String createUser(CustomerSignUpRequest req) throws CustomerException;
+    String createCustomer(CustomerSignUpRequest req) throws CustomerException;
     AuthResponse signIn(LoginRequest req) throws Exception;
     AuthResponse loginSeller(LoginRequest req) throws Exception;
 }

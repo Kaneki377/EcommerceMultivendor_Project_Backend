@@ -80,8 +80,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public String createUser(CustomerSignUpRequest req) throws CustomerException {
-
+    public String createCustomer(CustomerSignUpRequest req) throws CustomerException {
         VerificationCode verificationCode = verificationCodeRepository.findByEmail(req.getAccount().getEmail());
 
         Account existingAccountUsername = accountRepository.findByUsername(req.getAccount().getUsername());

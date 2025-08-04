@@ -33,7 +33,7 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> createCustomerHandler(@Valid @RequestBody CustomerSignUpRequest req) throws CustomerException {
         //Tạo Customer bằng jwt token
-        String jwt = authService.createUser(req);
+        String jwt = authService.createCustomer(req);
 
         AuthResponse res = new  AuthResponse();
         res.setJwt(jwt);
