@@ -97,7 +97,8 @@ public class SellerController {
     @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<SellerReport> getSellerReport(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        Seller seller = sellerService.getSellerProfile(jwt);
+        String username = jwtProvider.getUsernameFromJwtToken(jwt);
+        Seller seller = sellerService.getSellerByUsername(username);
         SellerReport report = sellerReportService.getSellerReport(seller);
         return new ResponseEntity<>(report, HttpStatus.OK);
     }

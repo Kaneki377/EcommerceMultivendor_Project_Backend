@@ -114,7 +114,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .setQuantity(1L)
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                                 .setCurrency("usd")
-                                .setUnitAmount(amount*100)
+                                .setUnitAmount(amount/25000)
                                 .setProductData(
                                         SessionCreateParams
                                                 .LineItem.PriceData.ProductData

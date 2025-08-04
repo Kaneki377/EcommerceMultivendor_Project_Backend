@@ -15,15 +15,13 @@ public class SellerReportServiceImpl implements SellerReportService {
 
     @Override
     public SellerReport getSellerReport(Seller seller) throws Exception {
-        SellerReport sellerReport = sellerReportRepository.findBySellerId(seller.getId());
-
-        if(sellerReport == null) {
-            SellerReport newSellerReport = new SellerReport();
-            newSellerReport.setId(seller.getId());
-            return sellerReportRepository.save(newSellerReport);
+        SellerReport report = sellerReportRepository.findBySellerId(seller.getId());
+        if(report == null){
+            SellerReport newReport = new SellerReport();
+            newReport.setSeller(seller);
+            return sellerReportRepository.save(newReport);
         }
-
-        return sellerReport;
+        return report;
     }
 
     @Override

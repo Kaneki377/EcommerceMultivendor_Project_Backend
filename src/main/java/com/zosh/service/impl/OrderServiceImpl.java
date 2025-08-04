@@ -101,7 +101,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<Order> sellersOrder(Long sellerId) {
-        return orderRepository.findBySellerId(sellerId);
+        return orderRepository.findBySellerIdOrderByOrderDateDesc(sellerId);
     }
 
     @Override
@@ -119,7 +119,7 @@ public class OrderServiceImpl implements OrderService {
         if(!customer.getId().equals(order.getCustomer().getId())) {
             throw new Exception("You don't have access to this order");
         }
-        order.setOrderStatus(OrderStatus.CANCELED);
+        order.setOrderStatus(OrderStatus.CANCELLED);
 
         return orderRepository.save(order);
     }
