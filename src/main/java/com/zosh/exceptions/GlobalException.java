@@ -143,9 +143,4 @@ public class GlobalException {
 
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorDetails> methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException me){
-        ErrorDetails err=new ErrorDetails(me.getBindingResult().getFieldError().getDefaultMessage(),"validation error",LocalDateTime.now());
-        return new ResponseEntity<ErrorDetails>(err,HttpStatus.BAD_REQUEST);
-    }
 }
