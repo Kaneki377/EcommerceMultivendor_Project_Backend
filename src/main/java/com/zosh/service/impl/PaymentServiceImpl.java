@@ -132,10 +132,15 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public String createPaypalPaymentLink(Long amount, Long paymentOrderId) throws PayPalRESTException {
+        // Convert từ VNĐ sang USD
+        double exchangeRate = 25000.0;
+        double amountInUSD = (double) amount / exchangeRate;
+
         Amount paymentAmount = new Amount();
+
         paymentAmount.setCurrency("USD");
 
-        paymentAmount.setTotal(String.format("%.2f", (double) amount));
+        paymentAmount.setTotal(String.format("%.2f", amountInUSD));
 
         Transaction transaction = new Transaction();
         transaction.setAmount(paymentAmount);
