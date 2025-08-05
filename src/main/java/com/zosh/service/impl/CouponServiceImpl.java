@@ -63,16 +63,17 @@ public class CouponServiceImpl implements CouponService {
 
         Coupon coupon = couponRepository.findByCode(code);
 
-        if(coupon == null) {
-            throw new Exception("Coupon not found...");
+        if(coupon==null){
+            throw new Exception("coupon not found...");
         }
+        customer.getUsedCoupons().remove(coupon);
 
         Cart cart = cartRepository.findByCustomerId(customer.getId());
-        double discountedPrice = (cart.getTotalSellingPrice() * coupon.getDiscountPercentage()) / 100;
-
-        cart.setTotalSellingPrice(cart.getTotalSellingPrice() + discountedPrice);
-        cart.setCouponCode(code);
-
+//        double discountedPrice = (cart.getTotalSellingPrice() * coupon.getDiscountPercentage()) / 100;
+//        cart.setTotalSellingPrice(cart.getTotalSellingPrice() + discountedPrice);
+        cart.setTotalSellingPrice(cart.getTotalSellingPrice()+cart.getCouponPrice());
+        cart.setCouponCode(null);
+        cart.setCouponPrice(0);
         return cartRepository.save(cart);
     }
 

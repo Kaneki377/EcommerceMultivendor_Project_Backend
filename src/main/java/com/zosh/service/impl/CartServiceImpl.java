@@ -17,7 +17,7 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
 
     private final CartItemRepository cartItemRepository;
-
+    private final int shippingFee = 30000;
     @Override
     public CartItem addCartItem(Customer customer, Product product, String size, int quantity) {
 
@@ -61,8 +61,8 @@ public class CartServiceImpl implements CartService {
         }
 
         cart.setTotalMrpPrice(totalPrice);
-        cart.setTotalItem(totalItems);
-        cart.setTotalSellingPrice(totalDiscountedPrice);
+        cart.setTotalItem(cart.getCartItems().size());
+        cart.setTotalSellingPrice(totalDiscountedPrice-cart.getCouponPrice());
         cart.setDiscount(calculateDiscountPercentage(totalPrice, totalDiscountedPrice));
         cart.setTotalItem(totalItems);
 
