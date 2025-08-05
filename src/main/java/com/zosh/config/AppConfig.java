@@ -31,7 +31,7 @@ public class AppConfig {
         )).authorizeHttpRequests(authorize->authorize
 
                 .requestMatchers("/api/product/*/reviews").permitAll()
-                .requestMatchers("/api/koc/create").hasAnyRole("CUSTOMER", "ADMIN")
+                .requestMatchers("/api/koc/create").hasAnyRole("CUSTOMER", "MANAGER")
                 .requestMatchers("/api/koc/**").authenticated() // Dựa vào @PreAuthorize
                 .requestMatchers("/api/**").authenticated() //bắt buộc yêu cầu phải đã xác thực.
 

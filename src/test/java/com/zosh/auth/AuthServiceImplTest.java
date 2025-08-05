@@ -62,7 +62,7 @@ public class AuthServiceImplTest {
         req.setAccount(accReq);
 
         // 3. Gọi service
-        String token = authService.createUser(req);
+        String token = authService.createCustomer(req);
 
         // 4. Kiểm tra kết quả
         Account saved = accountRepository.findByEmail(email);

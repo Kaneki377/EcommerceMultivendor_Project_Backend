@@ -9,13 +9,14 @@ import com.zosh.service.CouponService;
 import com.zosh.service.CustomerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/coupons")
 public class ManagerCouponController {
 
     private final CouponService couponService;
@@ -47,18 +48,22 @@ public class ManagerCouponController {
 
     // Admin operations
     @PostMapping("/admin/create")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<Coupon> createCoupon(@RequestBody Coupon coupon) {
+
         Coupon createdCoupon = couponService.createCoupon(coupon);
         return ResponseEntity.ok(createdCoupon);
     }
 
     @DeleteMapping("/admin/delete/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<?> deleteCoupon(@PathVariable Long id) throws Exception {
         couponService.deleteCoupon(id);
         return ResponseEntity.ok("Coupon deleted successfully");
     }
 
     @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<List<Coupon>> getAllCoupons() {
         List<Coupon> coupons = couponService.findAllCoupons();
         return ResponseEntity.ok(coupons);

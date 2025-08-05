@@ -7,6 +7,7 @@ import com.zosh.model.Customer;
 import com.zosh.model.VerificationCode;
 import com.zosh.repository.CustomerRepository;
 import com.zosh.request.CustomerSignUpRequest;
+import com.zosh.request.LoginAdminRequest;
 import com.zosh.request.LoginRequest;
 import com.zosh.request.SignUpRequest;
 import com.zosh.response.ApiResponse;
@@ -38,6 +39,7 @@ public class AuthController {
         AuthResponse res = new  AuthResponse();
         res.setJwt(jwt);
         res.setMessage("Register successfully !");
+        res.setStatus(true);
         res.setRole(USER_ROLE.ROLE_CUSTOMER);
         return ResponseEntity.ok(res);
     }
@@ -70,6 +72,13 @@ public class AuthController {
     public ResponseEntity<AuthResponse> loginSeller(@Valid @RequestBody LoginRequest req) throws Exception {
         AuthResponse authResponse = authService.loginSeller(req);
         authResponse.setMessage("Welcome Seller!");
+        authResponse.setStatus(true);
+        return ResponseEntity.ok(authResponse);
+    }
+    @PostMapping("admin/login")
+    public ResponseEntity<AuthResponse> loginAdmin(@Valid @RequestBody LoginAdminRequest req) throws Exception {
+        AuthResponse authResponse = authService.loginAdmin(req);
+        authResponse.setMessage("Welcome Admin!");
         return ResponseEntity.ok(authResponse);
     }
 }

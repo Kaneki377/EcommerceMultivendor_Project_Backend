@@ -1,6 +1,7 @@
 package com.zosh.controller;
 
 import com.zosh.domain.AccountStatus;
+import com.zosh.exceptions.SellerException;
 import com.zosh.model.HomeCategory;
 import com.zosh.model.Seller;
 import com.zosh.service.HomeCategoryService;
@@ -23,7 +24,7 @@ public class ManagerController {
     @PatchMapping("/seller/{id}/status/{status}")
     public ResponseEntity<Seller> updateSellerStatus(
             @PathVariable Long id,
-            @PathVariable AccountStatus status) throws Exception {
+            @PathVariable AccountStatus status) throws SellerException {
 
         Seller updatedSeller = sellerService.updateSellerAccountStatus(id,status);
         return ResponseEntity.ok(updatedSeller);

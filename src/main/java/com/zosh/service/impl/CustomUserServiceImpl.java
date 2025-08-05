@@ -42,7 +42,10 @@ public class CustomUserServiceImpl implements UserDetailsService {
         if (!account.getIsEnabled()) {
             throw new LoginException("Your account has been disabled");
         }
-
+        //Nếu là admin
+        if (account.getRole().getName().equals(USER_ROLE.ROLE_MANAGER.name())) {
+            return buildUserDetails(account.getUsername(), account.getPassword(), USER_ROLE.ROLE_MANAGER);
+        }
         //Kiểm tra xem là Seller hay Customer
 
 

@@ -55,7 +55,7 @@ public class HomeServiceImpl implements HomeService {
         Home home = new Home();
         home.setGrid(gridCategories);
         home.setShopByCategories(shopByCategories);
-        home.setEletricCategories(electricCategories);
+        home.setElectricCategories(electricCategories);
         home.setDeals(createdDeals);
         home.setDealCategories(dealCategories);
 

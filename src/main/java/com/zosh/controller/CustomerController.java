@@ -29,7 +29,7 @@ public class CustomerController {
 
     //REST API endpoint GET để lấy thông tin profile của Customer
     @GetMapping("/api/users/profile")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER','KOC')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'CUSTOMER','KOC')")
     public ResponseEntity<CustomerProfileResponse> getCustomerProfile(
             @RequestHeader("Authorization") String jwt
     ) throws Exception {

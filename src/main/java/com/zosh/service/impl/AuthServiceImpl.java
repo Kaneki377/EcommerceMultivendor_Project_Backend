@@ -8,6 +8,7 @@ import com.zosh.exceptions.SellerException;
 import com.zosh.model.*;
 import com.zosh.repository.*;
 import com.zosh.request.CustomerSignUpRequest;
+import com.zosh.request.LoginAdminRequest;
 import com.zosh.request.LoginRequest;
 import com.zosh.request.SignUpRequest;
 import com.zosh.response.AuthResponse;
@@ -49,6 +50,8 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void sentSignUpOtp(String email) throws Exception {
         String SIGNING_PREFIX="signin_";
+        Date now = new Date();
+        Date expiresAt = new Date(now.getTime() + 10 * 60 * 1000); //10p
 
         if(email.startsWith(SIGNING_PREFIX)){
             email=email.substring(SIGNING_PREFIX.length());
@@ -70,9 +73,11 @@ public class AuthServiceImpl implements AuthService {
         VerificationCode verificationCode = new VerificationCode();
         verificationCode.setOtp(otp);
         verificationCode.setEmail(email);
+        verificationCode.setCreatedAt(now);
+        verificationCode.setExpiresAt(expiresAt);
         verificationCodeRepository.save(verificationCode);
 
-        String subsject = "zosh login/signup otp";
+        String subsject = "Zonix Mall login/signup otp";
         String text = "your login/signup otp is - " + otp;
 
         emailService.sendVerificationOtpEmail(email,otp,subsject,text);
@@ -201,6 +206,46 @@ public class AuthServiceImpl implements AuthService {
         res.setRole(USER_ROLE.ROLE_SELLER);
 
         return res;
+    }
+
+    @Override
+    public AuthResponse loginAdmin(LoginAdminRequest req) throws Exception {
+        String username = req.getUsername();
+        String password = req.getPassword();
+        String email = req.getEmail();
+        String otp = req.getOtp();
+
+        // B1: Kiểm tra tồn tại tài khoản email & OTP hợp lệ
+        VerificationCode verificationCode = verificationCodeRepository.findByEmail(email);
+        if (verificationCode == null || !verificationCode.getOtp().equals(otp)) {
+            throw new  ResponseStatusException(HttpStatus.BAD_REQUEST,"Wrong OTP  !!!");
+        }
+        Date now = new Date();
+        if (now.after(verificationCode.getExpiresAt())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP is expired");
+        }
+        // B2: Xác thực username/password
+        Authentication authentication = authenticateWithPassword(username, password);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // B3: Kiểm tra vai trò ROLE_MANAGER
+        Account account = accountRepository.findByUsername(username);
+        if (account == null || !account.getRole().getName().equals("ROLE_MANAGER")) {
+            throw new InvalidRoleLoginException("Only Admin can login here.");
+        }
+
+        // Xoá OTP sau khi dùng
+        verificationCodeRepository.delete(verificationCode);
+
+        // B4: Tạo JWT token
+        String token = jwtProvider.generateToken(authentication);
+
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setJwt(token);
+        authResponse.setMessage("Login successful!");
+        authResponse.setRole(USER_ROLE.ROLE_MANAGER);
+
+        return authResponse;
     }
 
     //Xác thực bằng otp
