@@ -1,11 +1,9 @@
 package com.zosh.controller;
 
-import com.zosh.dto.CustomerProfileResponse;
 import com.zosh.model.Customer;
 import com.zosh.model.Home;
 import com.zosh.model.HomeCategory;
 import com.zosh.repository.CustomerRepository;
-import com.zosh.request.UpdateCustomerRequest;
 import com.zosh.service.CustomerService;
 import com.zosh.service.HomeCategoryService;
 import com.zosh.service.HomeService;
@@ -46,6 +44,8 @@ public class CustomerController {
         return ResponseEntity.ok(updated);
     }
 
+        return  ResponseEntity.ok().body(customer); //// JSON nếu customer là object
+    }
 
     @GetMapping("/home-page")
     public ResponseEntity<Home> getHomePageData() {
