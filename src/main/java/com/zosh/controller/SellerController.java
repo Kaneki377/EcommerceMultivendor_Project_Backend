@@ -71,7 +71,7 @@ public class SellerController {
 
         String subject = "Zosh Bazaar Email Verification Code";
         String text = "Welcome to Zosh Bazaar, verify your account using this link , link will expire after 10 minutes !";
-        String frontend_url = "http://localhost:5454/verify-seller/";
+        String frontend_url = "http://localhost:5173/verify-seller/";
         emailService.sendVerificationOtpEmail(email, verificationCode.getOtp(), subject, text + frontend_url);
 
         return new ResponseEntity<>(savedSeller, HttpStatus.CREATED);

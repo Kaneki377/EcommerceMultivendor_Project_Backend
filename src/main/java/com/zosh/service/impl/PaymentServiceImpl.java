@@ -104,7 +104,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public Session createStripePaymentLink(Customer customer, Long amount, Long orderId) throws StripeException {
         Stripe.apiKey = stripeSecretKey;
+        double exchangeRate = 25000.0;
 
+        // Chuyển VND -> USD -> cent
+        long amountUsdInCents = Math.round((amount/ exchangeRate) * 100);
         SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -114,7 +117,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .setQuantity(1L)
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                                 .setCurrency("usd")
-                                .setUnitAmount(amount*100)
+                                .setUnitAmount(amountUsdInCents)
                                 .setProductData(
                                         SessionCreateParams
                                                 .LineItem.PriceData.ProductData

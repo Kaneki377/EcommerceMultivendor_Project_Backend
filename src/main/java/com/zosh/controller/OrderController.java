@@ -1,9 +1,13 @@
 package com.zosh.controller;
 
+import com.paypal.base.exception.PayPalException;
+import com.paypal.base.rest.PayPalRESTException;
+import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.zosh.domain.PaymentMethod;
 import com.zosh.domain.PaymentOrderStatus;
 import com.zosh.domain.PaymentStatus;
+import com.zosh.exceptions.CustomerException;
 import com.zosh.model.*;
 import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
@@ -49,7 +53,7 @@ public class OrderController {
             @RequestBody Address spippingAddress,
             @RequestParam PaymentMethod paymentMethod,
             @RequestHeader("Authorization")String jwt)
-            throws Exception{
+            throws CustomerException, PayPalRESTException, StripeException {
 
         Customer customer = customerService.findCustomerByJwtToken(jwt);
         Cart cart= cartService.findCustomerCart(customer);

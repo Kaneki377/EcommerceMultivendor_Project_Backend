@@ -39,6 +39,7 @@ public class ProductServiceImpl implements ProductService {
             Category category = new Category();
             category.setCategoryId(request.getCategory());
             category.setLevel(1);
+            category.setName(request.getCategory().replace("_"," "));
             category1 = categoryRepository.save(category);
         }
 
@@ -49,6 +50,7 @@ public class ProductServiceImpl implements ProductService {
             category.setCategoryId(request.getCategory2());
             category.setLevel(2);
             category.setParentCategory(category1);
+            category.setName(request.getCategory2().replace("_"," "));
             category2 = categoryRepository.save(category);
         }
 
@@ -59,6 +61,7 @@ public class ProductServiceImpl implements ProductService {
             category.setCategoryId(request.getCategory3());
             category.setLevel(3);
             category.setParentCategory(category2);
+            category.setName(request.getCategory3().replace("_"," "));
             category3 = categoryRepository.save(category);
         }
 
