@@ -1,5 +1,6 @@
 package com.zosh.service.impl;
 
+import com.zosh.exceptions.CouponNotValidException;
 import com.zosh.model.Cart;
 import com.zosh.model.Coupon;
 import com.zosh.model.Customer;
@@ -31,15 +32,15 @@ public class CouponServiceImpl implements CouponService {
         Cart cart = cartRepository.findByCustomerId(customer.getId());
 
         if(coupon == null) {
-            throw new Exception("Coupon not valid");
+            throw new CouponNotValidException("Coupon not valid");
         }
 
         if(customer.getUsedCoupons().contains(coupon)) {
-            throw new Exception("Coupon is already used");
+            throw new CouponNotValidException("Coupon is already used");
         }
 
         if(orderValue < coupon.getMinimumOrderValue()) {
-            throw new Exception("Minimum Order value to use coupon is " + coupon.getMinimumOrderValue());
+            throw new CouponNotValidException("Minimum Order value to use coupon is " + coupon.getMinimumOrderValue());
         }
 
         //Check expire date cua Coupon
@@ -48,23 +49,24 @@ public class CouponServiceImpl implements CouponService {
             customer.getUsedCoupons().add(coupon);
             customerRepository.save(customer);
 
-            double discountedPrice = (cart.getTotalSellingPrice() * coupon.getDiscountPercentage()) / 100;
+            double discountedPrice = Math.round((cart.getTotalSellingPrice() * coupon.getDiscountPercentage()) / 100);
 
             cart.setTotalSellingPrice(cart.getTotalSellingPrice() + discountedPrice);
             cart.setCouponCode(code);
+            cart.setCouponPrice((int) discountedPrice);
             cartRepository.save(cart);
             return cart;
         }
-        throw new Exception("Coupon not valid");
+        throw new CouponNotValidException("coupon not valid...");
     }
 
     @Override
-    public Cart removeCoupon(String code, Customer customer) throws Exception {
+    public Cart removeCoupon(String code, Customer customer) throws CouponNotValidException {
 
         Coupon coupon = couponRepository.findByCode(code);
 
         if(coupon==null){
-            throw new Exception("coupon not found...");
+            throw new CouponNotValidException("coupon not found...");
         }
         customer.getUsedCoupons().remove(coupon);
 
@@ -80,8 +82,8 @@ public class CouponServiceImpl implements CouponService {
     @Override
     public Coupon findCouponById(Long id) throws Exception {
 
-        return couponRepository.findById(id).orElseThrow(()->
-                 new Exception("Coupon not found"));
+        return couponRepository.findById(id)
+                .orElseThrow(() -> new Exception("Coupon not found"));
     }
 
     @Override
@@ -101,7 +103,8 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @PreAuthorize("hasRole ('MANAGER')")
     public void deleteCoupon(Long id) throws Exception {
-        findCouponById(id);
-        couponRepository.deleteById(id);
+        Coupon coupon = couponRepository.findById(id)
+                .orElseThrow(() -> new Exception("Coupon not found"));
+        couponRepository.delete(coupon); // delete by entity
     }
 }
