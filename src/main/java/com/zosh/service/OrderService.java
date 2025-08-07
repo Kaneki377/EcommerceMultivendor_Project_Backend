@@ -21,7 +21,7 @@ public interface OrderService {
 
     Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws OrderException;
 
-    Order cancelOrder(long orderId, Customer customer) throws Exception;
+    Order cancelOrder(long orderId, Customer customer) throws OrderException;
 
     public void deleteOrder(Long orderId) throws OrderException;
 }

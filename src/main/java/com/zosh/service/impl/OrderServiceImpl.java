@@ -115,11 +115,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order cancelOrder(long orderId, Customer customer) throws Exception {
+    public Order cancelOrder(long orderId, Customer customer) throws OrderException {
         Order order = findOrderById(orderId);
 
         if(!customer.getId().equals(order.getCustomer().getId())) {
-            throw new Exception("You don't have access to this order");
+            throw new OrderException("You don't have access to this order");
         }
         order.setOrderStatus(OrderStatus.CANCELLED);
 
