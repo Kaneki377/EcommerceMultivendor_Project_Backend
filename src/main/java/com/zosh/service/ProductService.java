@@ -1,6 +1,7 @@
 package com.zosh.service;
 
 import com.zosh.exceptions.ProductException;
+import com.zosh.exceptions.SellerException;
 import com.zosh.model.Product;
 import com.zosh.model.Seller;
 import com.zosh.request.CreateProductRequest;
@@ -11,7 +12,7 @@ import java.util.List;
 
 public interface ProductService {
 
-    public Product createProduct(CreateProductRequest request, Seller seller);
+    public Product createProduct(CreateProductRequest request, Seller seller) throws SellerException;
 
     public void deleteProduct(Long productId) throws ProductException;
 

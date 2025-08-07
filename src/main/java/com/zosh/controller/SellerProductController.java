@@ -1,6 +1,7 @@
 package com.zosh.controller;
 
 import com.zosh.exceptions.ProductException;
+import com.zosh.exceptions.SellerException;
 import com.zosh.model.Product;
 import com.zosh.model.Seller;
 import com.zosh.request.CreateProductRequest;
@@ -21,12 +22,11 @@ import java.util.List;
 public class SellerProductController {
 
     private final ProductService productService;
-
     private final SellerService sellerService;
 
     @GetMapping()
     public ResponseEntity<List<Product>> getProductBySellerId(
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader("Authorization") String jwt) throws SellerException {
         Seller seller = sellerService.getSellerProfile(jwt);
 
         List<Product> products = productService.getProductBySellerId(seller.getId());
@@ -38,7 +38,7 @@ public class SellerProductController {
     @PostMapping()
     public ResponseEntity<Product> createProduct(
             @RequestBody @Valid CreateProductRequest request,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader("Authorization") String jwt) throws SellerException,ProductException {
         Seller seller = sellerService.getSellerProfile(jwt);
 
         Product product = productService.createProduct(request, seller);

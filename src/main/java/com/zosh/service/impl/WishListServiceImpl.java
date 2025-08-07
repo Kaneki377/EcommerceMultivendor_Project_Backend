@@ -1,5 +1,6 @@
 package com.zosh.service.impl;
 
+import com.zosh.exceptions.WishlistNotFoundException;
 import com.zosh.model.Customer;
 import com.zosh.model.Product;
 import com.zosh.model.Wishlist;
@@ -15,15 +16,24 @@ public class WishListServiceImpl implements WishListService {
     private final WishListRepository wishListRepository;
 
     @Override
-    public Wishlist createWishList(Customer customer) {
-        Wishlist wishlist = new Wishlist();
-        wishlist.setCustomer(customer);
+    public Wishlist createWishList(Customer customer) throws WishlistNotFoundException {
+        try {
+            if (customer == null) {
+                throw new WishlistNotFoundException("Customer is null. Cannot create wishlist.");
+            }
 
-        return wishListRepository.save(wishlist);
+            Wishlist wishlist = new Wishlist();
+            wishlist.setCustomer(customer);
+
+            return wishListRepository.save(wishlist);
+
+        } catch (Exception e) {
+            throw new WishlistNotFoundException("Failed to create wishlist: " + e.getMessage());
+        }
     }
 
     @Override
-    public Wishlist getWishListByCustomerId(Customer customer) {
+    public Wishlist getWishListByCustomerId(Customer customer) throws WishlistNotFoundException{
 
         Wishlist wishlist = wishListRepository.findByCustomerId(customer.getId());
 
@@ -35,7 +45,7 @@ public class WishListServiceImpl implements WishListService {
     }
 
     @Override
-    public Wishlist addProductToWishList(Customer customer, Product product) {
+    public Wishlist addProductToWishList(Customer customer, Product product) throws WishlistNotFoundException{
         Wishlist wishlist = getWishListByCustomerId(customer);
 
         if(wishlist.getProducts().contains(product)) {

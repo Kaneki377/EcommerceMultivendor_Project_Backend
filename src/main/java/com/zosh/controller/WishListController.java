@@ -1,5 +1,6 @@
 package com.zosh.controller;
 
+import com.zosh.exceptions.WishlistNotFoundException;
 import com.zosh.model.Customer;
 import com.zosh.model.Product;
 import com.zosh.model.User;
@@ -22,9 +23,15 @@ public class WishListController {
 
     private final ProductService productService;
 
+    @PostMapping("/create")
+    public ResponseEntity<Wishlist> createWishlist(@RequestBody Customer customer) throws WishlistNotFoundException {
+        Wishlist wishlist = wishListService.createWishList(customer);
+        return ResponseEntity.ok(wishlist);
+    }
+
     @GetMapping()
     public ResponseEntity<Wishlist> getWishlistByCustomerId(
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader("Authorization") String jwt) throws WishlistNotFoundException {
 
         Customer customer = customerService.findCustomerByJwtToken(jwt);
         Wishlist wishlist = wishListService.getWishListByCustomerId(customer);
@@ -34,7 +41,7 @@ public class WishListController {
     @PostMapping("/add-product/{productId}")
     public ResponseEntity<Wishlist> addProductToWishlist(
             @PathVariable Long productId,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader("Authorization") String jwt) throws WishlistNotFoundException {
 
         Product product = productService.findProductById(productId);
         Customer customer = customerService.findCustomerByJwtToken(jwt);
