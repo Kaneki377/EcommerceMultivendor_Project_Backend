@@ -62,13 +62,13 @@ public class CustomerServiceImplTest {
     }
 
     @Test
-    void testFindCustomerByJwtToken() throws Exception {
+    void testFindCustomerProfileByJwt() throws Exception {
         String fakeJwt = "fake.jwt.token";
 
         // Giả lập jwtProvider trả về username
         Mockito.when(jwtProvider.getUsernameFromJwtToken(fakeJwt)).thenReturn(TEST_USERNAME);
 
-        Customer customer = customerService.findCustomerByJwtToken(fakeJwt);
+        Customer customer = customerService.findCustomerProfileByJwt(fakeJwt);
         assertThat(customer).isNotNull();
         assertThat(customer.getAccount().getUsername()).isEqualTo(TEST_USERNAME);
     }

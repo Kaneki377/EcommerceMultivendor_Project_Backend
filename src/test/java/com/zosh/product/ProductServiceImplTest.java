@@ -1,6 +1,7 @@
 package com.zosh.product;
 
 
+import com.zosh.exceptions.SellerException;
 import com.zosh.model.Product;
 import com.zosh.model.Seller;
 
@@ -30,7 +31,7 @@ public class ProductServiceImplTest {
     private SellerRepository sellerRepository;
 
     @Test
-    void testCreateProduct() {
+    void testCreateProduct() throws SellerException {
         Seller seller = new Seller();
         seller.setSellerName("Seller Test");
         seller = sellerRepository.save(seller);

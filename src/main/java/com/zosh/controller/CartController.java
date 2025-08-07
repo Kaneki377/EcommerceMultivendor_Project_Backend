@@ -33,7 +33,7 @@ public class CartController {
     public ResponseEntity<Cart> findCustomerCartHandler(
             @RequestHeader("Authorization") String jwt
     ) throws CustomerException {
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
         Cart cart = cartService.findCustomerCart(customer);
 
@@ -47,7 +47,7 @@ public class CartController {
             @RequestBody AddItemRequest request,
             @RequestHeader("Authorization") String jwt
     ) throws ProductException, CustomerException {
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
         Product product = productService.findProductById(request.getProductId());
 
         CartItem item = cartService.addCartItem(
@@ -65,7 +65,7 @@ public class CartController {
             @PathVariable Long cartItemId,
             @RequestHeader("Authorization") String jwt
     ) throws CartItemException, CustomerException {
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
         cartItemService.removeCartItem(customer.getId(), cartItemId);
 
         ApiResponse apiResponse = new ApiResponse();
@@ -80,7 +80,7 @@ public class CartController {
             @RequestBody CartItem cartItem,
             @RequestHeader("Authorization") String jwt
     ) throws CartItemException, CustomerException {
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
         CartItem updatedCartItem = null;
         if(cartItem.getQuantity() > 0){

@@ -33,7 +33,7 @@ public class CustomerController {
     public ResponseEntity<CustomerProfileResponse> getCustomerProfile(
             @RequestHeader("Authorization") String jwt
     ) throws Exception {
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
         return ResponseEntity.ok(new CustomerProfileResponse(customer));
     }
     @PatchMapping("/api/users/profile")
@@ -58,7 +58,8 @@ public class CustomerController {
             @RequestBody List<HomeCategory> homeCategories
     ) {
         List<HomeCategory> categories = homeCategoryService.createCategories(homeCategories);
-        Home home= homeService.creatHomePageData(categories);
+//        Home home= homeService.creatHomePageData(categories);
+        Home home= homeService.creatHomePageData(homeCategories);
         return new ResponseEntity<>(home, HttpStatus.ACCEPTED);
     }
 }

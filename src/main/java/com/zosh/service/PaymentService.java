@@ -7,6 +7,7 @@ import com.stripe.model.checkout.Session;
 import com.zosh.model.Customer;
 import com.zosh.model.Order;
 import com.zosh.model.PaymentOrder;
+import com.zosh.response.PaymentLinkResponse;
 
 import java.util.Set;
 
@@ -18,11 +19,13 @@ public interface PaymentService {
 
     PaymentOrder getPaymentOrderByPaymentId(String paymentId) throws Exception;
 
+    Boolean verifyStripePayment(String sessionId) throws StripeException;
+
     Boolean ProceedPaymentOrder(PaymentOrder paymentOrder,
                                 String paymentId,
                                 String paymentLinkId) throws StripeException;
-    Session createStripePaymentLink(Customer customer,
-                                    Long amount, Long orderId) throws StripeException;
+    PaymentLinkResponse createStripePaymentLink(Customer customer,
+                                                 Long amount, Long orderId) throws StripeException;
 
     String createPaypalPaymentLink(Long amount, Long paymentOrderId) throws PayPalRESTException;
 

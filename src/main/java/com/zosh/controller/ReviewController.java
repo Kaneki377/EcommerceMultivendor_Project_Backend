@@ -42,7 +42,7 @@ public class ReviewController {
             @PathVariable Long productId,
             @RequestHeader("Authorization") String jwt) throws CustomerException, ProductException {
 
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
         Product product = productService.findProductById(productId);
 
         Review review = reviewService.createReview(
@@ -59,7 +59,7 @@ public class ReviewController {
             @RequestHeader("Authorization") String jwt)
             throws Exception {
 
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
         Review review = reviewService.updatedReview(
                 reviewId,
@@ -77,7 +77,7 @@ public class ReviewController {
             @RequestHeader("Authorization") String jwt) throws
             Exception {
 
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
         reviewService.deleteReview(reviewId, customer.getId());
         ApiResponse res = new ApiResponse();

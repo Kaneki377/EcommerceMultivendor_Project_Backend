@@ -39,7 +39,7 @@ public class SellerOrderController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Long orderId,
             @PathVariable OrderStatus orderStatus
-    ) throws Exception {
+    ) throws OrderException {
         Order order = orderService.updateOrderStatus(orderId, orderStatus);
 
         return new ResponseEntity<>(order, HttpStatus.ACCEPTED);

@@ -33,7 +33,7 @@ public class WishListController {
     public ResponseEntity<Wishlist> getWishlistByCustomerId(
             @RequestHeader("Authorization") String jwt) throws WishlistNotFoundException {
 
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
         Wishlist wishlist = wishListService.getWishListByCustomerId(customer);
         return ResponseEntity.ok(wishlist);
     }
@@ -44,7 +44,7 @@ public class WishListController {
             @RequestHeader("Authorization") String jwt) throws WishlistNotFoundException {
 
         Product product = productService.findProductById(productId);
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
         Wishlist updatedWishlist = wishListService.addProductToWishList(customer, product);
 
         return ResponseEntity.ok(updatedWishlist);

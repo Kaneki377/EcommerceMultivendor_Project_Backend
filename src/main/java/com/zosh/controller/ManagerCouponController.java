@@ -36,7 +36,7 @@ public class ManagerCouponController {
             @RequestHeader("Authorization") String jwt
     ) {
         try {
-            Customer customer = customerService.findCustomerByJwtToken(jwt);
+            Customer customer = customerService.findCustomerProfileByJwt(jwt);
             Cart cart;
 
             if (apply.equals("true")) {

@@ -8,6 +8,8 @@ import com.zosh.domain.PaymentMethod;
 import com.zosh.domain.PaymentOrderStatus;
 import com.zosh.domain.PaymentStatus;
 import com.zosh.exceptions.CustomerException;
+import com.zosh.exceptions.OrderException;
+import com.zosh.exceptions.SellerException;
 import com.zosh.model.*;
 import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
@@ -40,14 +42,14 @@ public class OrderController {
     //Tạo đơn hàng mới và tạo link thanh toán Stripe
     @PostMapping()
     public ResponseEntity<PaymentLinkResponse> createOrderHandler(
-            @RequestBody Address spippingAddress,
+            @RequestBody Address shippingAddress,
             @RequestParam PaymentMethod paymentMethod,
             @RequestHeader("Authorization")String jwt)
             throws CustomerException, PayPalRESTException, StripeException {
 
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
         Cart cart= cartService.findCustomerCart(customer);
-        Set<Order> orders =orderService.createOrder(customer, spippingAddress, cart);
+        Set<Order> orders =orderService.createOrder(customer, shippingAddress, cart);
 
         PaymentOrder paymentOrder = paymentService.createOrder(customer,orders);
 
@@ -55,15 +57,16 @@ public class OrderController {
         String paymentUrl = "";
 
         if (paymentMethod.equals(PaymentMethod.STRIPE)) {
-            Session session = paymentService.createStripePaymentLink(customer,
+            // Stripe
+            PaymentLinkResponse stripeRes = paymentService.createStripePaymentLink(customer,
                     paymentOrder.getAmount(),
                     paymentOrder.getId());
 
-            paymentUrl = session.getUrl(); // <-- sửa chỗ này
-            String sessionId = session.getId();
-            paymentOrder.setPaymentLinkId(session.getId()); // lưu session ID nếu cần
+            res.setPayment_link_url(stripeRes.getPayment_link_url());
+            res.setPayment_link_id(stripeRes.getPayment_link_id());
+
+            paymentOrder.setPaymentLinkId(stripeRes.getPayment_link_id());
             paymentOrderRepository.save(paymentOrder);
-            res.setPayment_link_id(sessionId);
         }
         // Thêm khối else if cho PayPal
         else if (paymentMethod.equals(PaymentMethod.PAYPAL)) {
@@ -71,28 +74,27 @@ public class OrderController {
                     paymentOrder.getAmount(),
                     paymentOrder.getId()
             );
+            res.setPayment_link_url(paymentUrl);
         }
 
-
-        res.setPayment_link_url(paymentUrl);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @GetMapping("/customer")
     public ResponseEntity<List<Order>> customersOrderHistoryHandler(
             @RequestHeader("Authorization")
-            String jwt) throws Exception{
+            String jwt) throws CustomerException{
 
-        Customer customer= customerService.findCustomerByJwtToken(jwt);
+        Customer customer= customerService.findCustomerProfileByJwt(jwt);
         List<Order> orders=orderService.customerOrderHistory(customer.getId());
         return new ResponseEntity<>(orders,HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/{orderId}")
     public ResponseEntity< Order> getOrderById(@PathVariable Long orderId, @RequestHeader("Authorization")
-    String jwt) throws Exception{
+    String jwt) throws OrderException, CustomerException{
 
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
         Order orders=orderService.findOrderById(orderId);
         return new ResponseEntity<>(orders,HttpStatus.ACCEPTED);
     }
@@ -102,7 +104,7 @@ public class OrderController {
             @PathVariable Long orderItemId, @RequestHeader("Authorization")
             String jwt) throws Exception {
         System.out.println("------- controller ");
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
         OrderItem orderItem = orderItemService.getOrderItemById(orderItemId);
         return new ResponseEntity<>(orderItem,HttpStatus.ACCEPTED);
     }
@@ -111,8 +113,8 @@ public class OrderController {
     public ResponseEntity<Order> cancelOrder(
             @PathVariable Long orderId,
             @RequestHeader("Authorization") String jwt
-    ) throws Exception {
-        Customer customer= customerService.findCustomerByJwtToken(jwt);
+    ) throws CustomerException, OrderException, SellerException {
+        Customer customer= customerService.findCustomerProfileByJwt(jwt);
         Order order=orderService.cancelOrder(orderId, customer);
 
         Seller seller = sellerService.getSellerById(order.getSellerId());
@@ -132,7 +134,7 @@ public class OrderController {
             @RequestHeader("Authorization") String jwt) throws Exception {
 
         // 1. Xác thực người dùng
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
         // 2. Tìm PaymentOrder
         PaymentOrder paymentOrder = paymentService.getPaymentOrderById(paymentOrderId);
@@ -174,7 +176,7 @@ public class OrderController {
             @RequestHeader("Authorization") String jwt) throws Exception {
 
         // Xác thực người dùng qua JWT
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
         // Gọi service để thực thi thanh toán và cập nhật đơn hàng
         paymentService.executeAndCompletePaypalOrder(

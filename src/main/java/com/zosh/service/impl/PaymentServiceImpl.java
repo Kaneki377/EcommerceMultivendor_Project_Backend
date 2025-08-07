@@ -16,6 +16,7 @@ import com.zosh.model.*;
 import com.zosh.model.Order;
 import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
+import com.zosh.response.PaymentLinkResponse;
 import com.zosh.service.PaymentService;
 import com.zosh.service.SellerReportService;
 import com.zosh.service.SellerService;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -73,6 +75,30 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    public Boolean verifyStripePayment(String sessionId) throws StripeException {
+        Stripe.apiKey = stripeSecretKey;
+        Session session = Session.retrieve(sessionId);
+
+        if ("paid".equals(session.getPaymentStatus())) {
+            PaymentOrder paymentOrder = paymentOrderRepository.findByPaymentLinkId(sessionId);
+
+            if (paymentOrder != null && paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)) {
+                for (Order order : paymentOrder.getOrders()) {
+                    order.setPaymentStatus(PaymentStatus.COMPLETED);
+                    orderRepository.save(order);
+                }
+                paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+                paymentOrderRepository.save(paymentOrder);
+                return true;
+            }
+            paymentOrder.setStatus(PaymentOrderStatus.FAILED);
+            paymentOrderRepository.save(paymentOrder);
+        }
+
+        return false;
+    }
+
+    @Override
     public Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId, String paymentLinkId) throws StripeException {
         if (paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)) {
 
@@ -102,7 +128,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Session createStripePaymentLink(Customer customer, Long amount, Long orderId) throws StripeException {
+    public PaymentLinkResponse createStripePaymentLink(Customer customer, Long amount, Long orderId) throws StripeException {
         Stripe.apiKey = stripeSecretKey;
         double exchangeRate = 25000.0;
 
@@ -111,7 +137,7 @@ public class PaymentServiceImpl implements PaymentService {
         SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:5173/payment-success/" + orderId + "?session_id={CHECKOUT_SESSION_ID}")
+                .setSuccessUrl("http://localhost:5173/payment-success?session_id={CHECKOUT_SESSION_ID}")
                 .setCancelUrl("http://localhost:5173/payment/cancel")
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
@@ -129,8 +155,20 @@ public class PaymentServiceImpl implements PaymentService {
 
         Session session = Session.create(params);
 
-        //return session.getUrl();
-        return session;
+        Optional<PaymentOrder> optionalOrder = paymentOrderRepository.findById(orderId);
+        if (optionalOrder.isPresent()) {
+            PaymentOrder paymentOrder = optionalOrder.get();
+            paymentOrder.setPaymentLinkId(session.getId());
+            paymentOrderRepository.save(paymentOrder);
+        } else {
+            throw new RuntimeException("Order with id not found: " + orderId);
+        }
+
+        PaymentLinkResponse response = new PaymentLinkResponse();
+        response.setPayment_link_url(session.getUrl());
+        response.setPayment_link_id(session.getId());
+
+        return response;
     }
 
     @Override

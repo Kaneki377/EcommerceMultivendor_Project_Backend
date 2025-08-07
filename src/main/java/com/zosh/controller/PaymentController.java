@@ -1,6 +1,8 @@
 package com.zosh.controller;
 
 import com.zosh.domain.PaymentMethod;
+import com.zosh.domain.PaymentOrderStatus;
+import com.zosh.domain.PaymentStatus;
 import com.zosh.model.*;
 import com.zosh.repository.CartRepository;
 import com.zosh.repository.OrderRepository;
@@ -13,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
+
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,7 +43,7 @@ public class PaymentController {
             @PathVariable Long orderId,
             @RequestHeader("Authorization") String jwt) throws Exception {
 
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
         PaymentLinkResponse paymentResponse;
 
@@ -49,46 +53,43 @@ public class PaymentController {
     }
 
 
-    @GetMapping("{paymentId}")
-    public ResponseEntity<ApiResponse> paymentSuccessHandler(
-            @PathVariable String paymentId,
-            @RequestParam String paymentLinkId,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+    @PostMapping("/stripe/verify")
+    public ResponseEntity<?> verifyStripe(
+            @RequestBody Map<String, String> body,
+            @RequestHeader("Authorization") String jwt
+    ) throws Exception {
+        String sessionId = body.get("sessionId");
+        Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
-        Customer customer = customerService.findCustomerByJwtToken(jwt);
-
-        PaymentLinkResponse paymentResponse;
-
-        PaymentOrder paymentOrder= paymentService
-                .getPaymentOrderByPaymentId(paymentLinkId);
-
-        boolean paymentSuccess = paymentService.ProceedPaymentOrder(
-                paymentOrder,
-                paymentId,
-                paymentLinkId
-        );
-        if(paymentSuccess){
-            for(Order order:paymentOrder.getOrders()){
-                transactionService.createTransaction(order);
-                Seller seller=sellerService.getSellerById(order.getSellerId());
-                SellerReport report=sellerReportService.getSellerReport(seller);
-                report.setTotalOrders(report.getTotalOrders()+1);
-                report.setTotalEarnings(report.getTotalEarnings()+order.getTotalSellingPrice());
-                report.setTotalSales(report.getTotalSales()+order.getOrderItems().size());
-                sellerReportService.updateSellerReport(report);
-            }
-            Cart cart= cartRepository.findByCustomerId(customer.getId());
-            cart.setCouponPrice(0);
-            cart.setCouponCode(null);
-            cartRepository.save(cart);
-
+        boolean isPaid = paymentService.verifyStripePayment(sessionId);
+        if (!isPaid) {
+            return ResponseEntity.status(400).body("Stripe Payment failed or not paid.");
         }
 
-        ApiResponse res = new ApiResponse();
-        res.setMessage("Payment successful");
-        res.setStatus(true);
+        PaymentOrder paymentOrder = paymentService.getPaymentOrderByPaymentId(sessionId);
+        for (Order order : paymentOrder.getOrders()) {
+            transactionService.createTransaction(order);
 
-        return new ResponseEntity<>(res, HttpStatus.CREATED);
+            Seller seller = sellerService.getSellerById(order.getSellerId());
+            SellerReport report = sellerReportService.getSellerReport(seller);
+            report.setTotalOrders(report.getTotalOrders() + 1);
+            report.setTotalEarnings(report.getTotalEarnings() + order.getTotalSellingPrice());
+            report.setTotalSales(report.getTotalSales() + order.getOrderItems().size());
+            sellerReportService.updateSellerReport(report);
+
+            order.setPaymentStatus(PaymentStatus.COMPLETED);
+            orderRepository.save(order);
+        }
+
+        Cart cart = cartRepository.findByCustomerId(customer.getId());
+        cart.setCouponPrice(0);
+        cart.setCouponCode(null);
+        cartRepository.save(cart);
+
+        paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+        paymentOrderRepository.save(paymentOrder);
+
+        return ResponseEntity.ok("Stripe Payment verified and processed.");
     }
 }
 

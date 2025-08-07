@@ -18,7 +18,7 @@ public class CustomerServiceImpl implements CustomerService {
     private final JwtProvider jwtProvider;
 
     @Override
-    public Customer findCustomerByJwtToken(String jwt) throws CustomerException {
+    public Customer findCustomerProfileByJwt(String jwt) throws CustomerException {
 
         String username = jwtProvider.getUsernameFromJwtToken(jwt);
         return this.findCustomerByUsername(username);
