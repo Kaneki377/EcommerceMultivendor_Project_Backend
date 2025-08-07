@@ -26,25 +26,15 @@ import java.util.Set;
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
 public class OrderController {
-
     private final OrderService orderService;
-
     private final CustomerService customerService;
-
     private final CartService cartService;
-
     private final SellerService sellerService;
-
     private final SellerReportService sellerReportService;
-
     private final PaymentService paymentService;
-
     private final PaymentOrderRepository paymentOrderRepository;
-
     private final OrderRepository orderRepository;
-
     private final TransactionService transactionService;
-
     private final OrderItemService orderItemService;
 
     //Tạo đơn hàng mới và tạo link thanh toán Stripe
