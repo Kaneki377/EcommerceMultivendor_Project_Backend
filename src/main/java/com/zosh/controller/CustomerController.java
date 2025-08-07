@@ -37,7 +37,7 @@ public class CustomerController {
         return ResponseEntity.ok(new CustomerProfileResponse(customer));
     }
     @PatchMapping("/api/users/profile")
-    @PreAuthorize("hasAnyRole('CUSTOMER','KOC')")
+    @PreAuthorize("hasAnyRole('CUSTOMER','KOC','MANAGER')")
     public ResponseEntity<CustomerProfileResponse> updateProfile(
             @RequestBody UpdateCustomerRequest request,
             @RequestHeader("Authorization") String jwt
@@ -58,7 +58,7 @@ public class CustomerController {
             @RequestBody List<HomeCategory> homeCategories
     ) {
         List<HomeCategory> categories = homeCategoryService.createCategories(homeCategories);
-        Home home= homeService.creatHomePageData(homeCategories);
+        Home home= homeService.creatHomePageData(categories);
         return new ResponseEntity<>(home, HttpStatus.ACCEPTED);
     }
 }

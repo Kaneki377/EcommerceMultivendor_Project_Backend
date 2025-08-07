@@ -66,7 +66,7 @@ public class CartServiceImpl implements CartService {
         cart.setDiscount(calculateDiscountPercentage(totalPrice, totalDiscountedPrice));
         cart.setTotalItem(totalItems);
 
-        return cart;
+        return cartRepository.save(cart);
     }
 
     private int calculateDiscountPercentage(int mrpPrice, int sellingPrice) {

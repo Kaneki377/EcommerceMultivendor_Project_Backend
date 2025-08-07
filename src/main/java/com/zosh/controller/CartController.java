@@ -24,11 +24,8 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartService cartService;
-
     private final CartItemService cartItemService;
-
     private final CustomerService customerService;
-
     private final ProductService productService;
 
 
@@ -60,7 +57,6 @@ public class CartController {
 
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setMessage("Item Added To Cart Successfully");
-
         return new ResponseEntity<>(item, HttpStatus.ACCEPTED);
     }
 
