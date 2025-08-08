@@ -2,11 +2,15 @@ package com.zosh.controller;
 
 import com.zosh.domain.AccountStatus;
 import com.zosh.exceptions.SellerException;
+import com.zosh.exceptions.UserException;
 import com.zosh.model.HomeCategory;
 import com.zosh.model.Seller;
+import com.zosh.model.User;
 import com.zosh.service.HomeCategoryService;
 import com.zosh.service.SellerService;
+import com.zosh.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +22,15 @@ import java.util.List;
 public class ManagerController {
 
     private final SellerService sellerService;
-
+    private final UserService userService;
     private final HomeCategoryService homeCategoryService;
+
+    @GetMapping("/profile")
+    public ResponseEntity<User>getUserProfile(@RequestHeader("Authorization") String jwt) throws UserException {
+        System.out.println("getUserProfile");
+        User user = userService.findUserProfileByJwt(jwt);
+        return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
+    }
 
     @PatchMapping("/seller/{id}/status/{status}")
     public ResponseEntity<Seller> updateSellerStatus(

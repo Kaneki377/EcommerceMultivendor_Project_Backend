@@ -55,6 +55,15 @@ public class GlobalException {
         errorDetails.setTimestamp(LocalDateTime.now());
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
+    //bắt exception của User
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<ErrorDetails> handleCustomerException(UserException ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails();
+        errorDetails.setError(ex.getMessage());
+        errorDetails.setDetails(request.getDescription(false));
+        errorDetails.setTimestamp(LocalDateTime.now());
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
     //Handle Exception Seller
     @ExceptionHandler(SellerException.class)
     public ResponseEntity<ErrorDetails> handleSellerException(SellerException ex, WebRequest req) {

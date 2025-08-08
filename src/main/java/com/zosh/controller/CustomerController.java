@@ -28,16 +28,16 @@ public class CustomerController {
     private final HomeService homeService;
 
     //REST API endpoint GET để lấy thông tin profile của Customer
-    @GetMapping("/api/users/profile")
-    @PreAuthorize("hasAnyRole('MANAGER', 'CUSTOMER','KOC')")
+    @GetMapping("/api/customer/profile")
+    @PreAuthorize("hasAnyRole('CUSTOMER','KOC')")
     public ResponseEntity<CustomerProfileResponse> getCustomerProfile(
             @RequestHeader("Authorization") String jwt
     ) throws Exception {
         Customer customer = customerService.findCustomerProfileByJwt(jwt);
         return ResponseEntity.ok(new CustomerProfileResponse(customer));
     }
-    @PatchMapping("/api/users/profile")
-    @PreAuthorize("hasAnyRole('CUSTOMER','KOC','MANAGER')")
+    @PatchMapping("/api/customer/profile")
+    @PreAuthorize("hasAnyRole('CUSTOMER','KOC')")
     public ResponseEntity<CustomerProfileResponse> updateProfile(
             @RequestBody UpdateCustomerRequest request,
             @RequestHeader("Authorization") String jwt
@@ -58,8 +58,8 @@ public class CustomerController {
             @RequestBody List<HomeCategory> homeCategories
     ) {
         List<HomeCategory> categories = homeCategoryService.createCategories(homeCategories);
-//        Home home= homeService.creatHomePageData(categories);
-        Home home= homeService.creatHomePageData(homeCategories);
+        Home home= homeService.creatHomePageData(categories);
+//        Home home= homeService.creatHomePageData(homeCategories);
         return new ResponseEntity<>(home, HttpStatus.ACCEPTED);
     }
 }
