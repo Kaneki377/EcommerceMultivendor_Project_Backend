@@ -1,5 +1,6 @@
 package com.zosh.model;
 
+import com.zosh.domain.AccountStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -18,7 +19,10 @@ public class Koc {
 
     @Column(name = "koc_id", unique = true, nullable = false)
     private String kocId;
-    // Giả định bạn có entity User đã định nghĩa trước
+
+    @Enumerated(EnumType.STRING)
+    private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;

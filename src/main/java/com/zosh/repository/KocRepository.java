@@ -1,6 +1,9 @@
 package com.zosh.repository;
 
+import com.zosh.domain.AccountStatus;
 import com.zosh.model.Koc;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,5 +31,5 @@ public interface KocRepository extends JpaRepository<Koc, Long> {
     Optional<Koc> findByKocId(String kocId);
 
     Optional<Koc> findByCustomer_Account_Username(String username);
-
+    Page<Koc> findByAccountStatus(AccountStatus status, Pageable pageable);
 }

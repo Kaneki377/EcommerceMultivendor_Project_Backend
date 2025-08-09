@@ -1,6 +1,7 @@
 package com.zosh.service.impl;
 
 import com.zosh.config.JwtProvider;
+import com.zosh.domain.AccountStatus;
 import com.zosh.domain.USER_ROLE;
 import com.zosh.exceptions.CustomerException;
 import com.zosh.exceptions.InvalidRoleLoginException;
@@ -194,6 +195,14 @@ public class AuthServiceImpl implements AuthService {
         Seller seller = sellerRepository.findByAccount_Username(username);
         if (seller == null) {
             throw new InvalidRoleLoginException("Only Seller accounts are allowed to log in");
+        }
+
+        if ( !seller.isEmailVerified()) {
+            throw new InvalidRoleLoginException("Email unverified account");
+        }
+
+        if (seller.getAccountStatus() == AccountStatus.PENDING_VERIFICATION) {
+            throw new InvalidRoleLoginException("Seller account is not active yet");
         }
 
         // 4. Tạo JWT

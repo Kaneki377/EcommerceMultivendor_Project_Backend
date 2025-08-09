@@ -37,7 +37,7 @@ public class Customer {
     private Gender gender;
 
     @Column(name = "dob")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate dob;
 
     @OneToOne(cascade = CascadeType.ALL )

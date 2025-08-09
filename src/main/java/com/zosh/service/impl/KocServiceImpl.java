@@ -1,5 +1,7 @@
 package com.zosh.service.impl;
 
+import com.zosh.domain.AccountStatus;
+import com.zosh.dto.KocDto;
 import com.zosh.exceptions.CustomerException;
 import com.zosh.exceptions.KocException;
 import com.zosh.model.Account;
@@ -12,6 +14,8 @@ import com.zosh.repository.RoleRepository;
 import com.zosh.request.CreateKocRequest;
 import com.zosh.service.KocService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -64,6 +68,36 @@ public class KocServiceImpl implements KocService {
         account.setIsEnabled(true);
         customerRepository.save(customer);
 
+        return kocRepository.save(koc);
+    }
+
+    @Override
+    public Koc getById(Long id) {
+        return kocRepository.findById(id)
+                .orElseThrow(() -> new KocException("KOC not found"));
+    }
+
+    @Override
+    public Page<KocDto> getAll(AccountStatus status, Pageable pageable) {
+        Page<Koc> page = (status != null)
+                ? kocRepository.findByAccountStatus(status, pageable)
+                : kocRepository.findAll(pageable);
+
+        return page.map(k -> new KocDto(
+                k.getId(),
+                k.getCustomer().getFullName(),
+                k.getAccountStatus(),
+                k.getCustomer().getId(),
+                k.getCustomer().getAccount() != null
+                        ? k.getCustomer().getAccount().getEmail()
+                        : null
+        ));
+    }
+
+    @Override
+    public Koc updateStatus(Long id, AccountStatus status) {
+        Koc koc = getById(id);
+        koc.setAccountStatus(status);
         return kocRepository.save(koc);
     }
 }

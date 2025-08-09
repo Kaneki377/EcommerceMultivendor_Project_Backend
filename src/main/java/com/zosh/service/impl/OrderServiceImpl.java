@@ -34,12 +34,13 @@ public class OrderServiceImpl implements OrderService {
         }
         Address address = addressRepository.save(shippingAddress);
 
-        //Trong case: 1 user buy product from different seller
+        //Gom các CartItem theo từng Seller
 
         Map<Long, List<CartItem>> itemsBySeller = cart.getCartItems().stream()
                 .collect(Collectors.groupingBy(item -> item.getProduct().
                         getSeller().getId()));
 
+        //Tạo đơn hàng cho từng seller
         Set<Order> orders = new HashSet<>();
 
         for(Map.Entry<Long, List<CartItem>> entry : itemsBySeller.entrySet()) {
@@ -53,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
             int totalItem = items.stream().mapToInt(
                     CartItem::getQuantity
             ).sum();
-
+            //Khởi tạo và lưu Order
             Order createdOrder = new Order();
             createdOrder.setCustomer(customer);
             createdOrder.setSellerId(sellerId);
@@ -67,6 +68,7 @@ public class OrderServiceImpl implements OrderService {
             Order savedOrder = orderRepository.save(createdOrder);
             orders.add(savedOrder);
 
+            //Tạo OrderItem cho từng CartItem
             List<OrderItem> orderItems = new ArrayList<>();
 
             for(CartItem item: items){

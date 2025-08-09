@@ -2,6 +2,7 @@ package com.zosh.controller;
 
 import com.zosh.config.JwtProvider;
 import com.zosh.domain.AccountStatus;
+import com.zosh.dto.SellerProfileDto;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.*;
 
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -68,30 +70,31 @@ public class SellerController {
         String email = savedSeller.getAccount().getEmail();
 
         VerificationCode verificationCode = verificationService.createVerificationCode(otp,username,email);
-
+        String verificationLink = "http://localhost:5173/verify-seller/";
+        String  frontend_url = verificationLink + verificationCode.getOtp();
         String subject = "Zosh Bazaar Email Verification Code";
         String text = "Welcome to Zosh Bazaar, verify your account using this link , link will expire after 10 minutes !";
-        String frontend_url = "http://localhost:5173/verify-seller/";
+
         emailService.sendVerificationOtpEmail(email, verificationCode.getOtp(), subject, text + frontend_url);
 
         return new ResponseEntity<>(savedSeller, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws Exception {
+    public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws SellerException {
         Seller seller = sellerService.getSellerById(id);
         return new ResponseEntity<>(seller, HttpStatus.OK);
     }
 
     @GetMapping("/profile")
     @PreAuthorize("hasRole('SELLER')")
-    public ResponseEntity<Seller> getSellerByJwt(
-            @RequestHeader("Authorization") String jwt) throws Exception {
-        //String email = jwtProvider.getEmailFromJwtToken(jwt);
-        //Seller seller = sellerService.getSellerByEmail(email);
-        Seller seller = sellerService.getSellerProfile(jwt);
-        return new ResponseEntity<>(seller, HttpStatus.OK);
+    public ResponseEntity<SellerProfileDto> getSellerByJwt(
+            @RequestHeader("Authorization") String jwt) throws SellerException {
+        String username = jwtProvider.getUsernameFromJwtToken(jwt);
+        Seller seller = sellerService.getSellerByUsername(username);
+        return ResponseEntity.ok(SellerProfileDto.fromEntity(seller));
     }
+
 
     @GetMapping("/report")
     @PreAuthorize("hasRole('SELLER')")

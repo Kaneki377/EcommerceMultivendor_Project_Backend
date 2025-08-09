@@ -186,11 +186,7 @@ public class SellerServiceImpl implements SellerService {
     public Seller verifyEmail(String username, String otp) throws SellerException {
         Seller seller = this.getSellerByUsername(username);
         if (seller == null) {
-            throw new SellerException("Không tìm thấy seller.");
-        }
-        //note
-        if (seller.getAccountStatus() == AccountStatus.PENDING_VERIFICATION) {
-            seller.setAccountStatus(AccountStatus.ACTIVE);
+            throw new SellerException("Seller doesn't exist !");
         }
 
         seller.setEmailVerified(true);

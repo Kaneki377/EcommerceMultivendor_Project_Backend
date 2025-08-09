@@ -1,5 +1,6 @@
 package com.zosh.service.impl;
 
+import com.zosh.domain.AccountStatus;
 import com.zosh.domain.USER_ROLE;
 import com.zosh.exceptions.LoginException;
 import com.zosh.model.Account;
@@ -51,14 +52,23 @@ public class CustomUserServiceImpl implements UserDetailsService {
 
             Seller seller = sellerRepository.findByAccount_Username(username);
 
-            if(seller !=null ){
-                if(!seller.isEmailVerified())
-                {
-                    throw new LoginException("Email unverified account");
-                }
-                return buildUserDetails(seller.getAccount().getUsername(), seller.getAccount().getPassword(),USER_ROLE.ROLE_SELLER);
+        if (seller != null) {
+            // 1. Chưa verify email
+            if (!seller.isEmailVerified()) {
+                throw new LoginException("Email unverified account");
             }
 
+            // 2. Nếu vẫn đang pending => chưa được active
+            if (seller.getAccountStatus() == AccountStatus.PENDING_VERIFICATION) {
+                throw new LoginException("Seller account don't accept active");
+            }
+
+            return buildUserDetails(
+                    seller.getAccount().getUsername(),
+                    seller.getAccount().getPassword(),
+                    USER_ROLE.ROLE_SELLER
+            );
+        }
         // Nếu là Customer hoặc KOC
         Customer customer = customerRepository.findByAccount_Username(username);
         if (customer != null && customer.getAccount() != null) {

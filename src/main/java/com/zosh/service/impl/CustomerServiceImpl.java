@@ -59,15 +59,8 @@ public class CustomerServiceImpl implements CustomerService {
 
             Customer updatedCustomer = customerRepository.save(customer);
 
-            return new CustomerProfileResponse(
-                    updatedCustomer.getId(),
-                    updatedCustomer.getFullName(),
-                    updatedCustomer.getMobile(),
-                    updatedCustomer.getGender(),
-                    updatedCustomer.getDob(),
-                    updatedCustomer.getAccount().getEmail(),
-                    updatedCustomer.isKoc()
-            );
+            return new CustomerProfileResponse(updatedCustomer);
+
         } catch (Exception e) {
             throw new CustomerException("Unable to update profile: " + e.getMessage());
         }

@@ -14,6 +14,7 @@ import com.zosh.domain.PaymentOrderStatus;
 import com.zosh.domain.PaymentStatus;
 import com.zosh.model.*;
 import com.zosh.model.Order;
+import com.zosh.repository.CartRepository;
 import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
 import com.zosh.response.PaymentLinkResponse;
@@ -40,6 +41,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final TransactionService transactionService;
     private final SellerService sellerService;
     private final SellerReportService sellerReportService;
+    private final CartRepository cartRepository;
 
     @Value("${stripe.api.key}")
     private String stripeSecretKey;
@@ -47,9 +49,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentOrder createOrder(Customer customer, Set<Order> orders) {
         Long amount = orders.stream().mapToLong(Order::getTotalSellingPrice).sum();
+        int couponPrice=cartRepository.findByCustomerId(customer.getId()).getCouponPrice();
 
         PaymentOrder paymentOrder = new PaymentOrder();
-        paymentOrder.setAmount(amount);
+        paymentOrder.setAmount(amount-couponPrice);
         paymentOrder.setCustomer(customer);
         paymentOrder.setOrders(orders);
 

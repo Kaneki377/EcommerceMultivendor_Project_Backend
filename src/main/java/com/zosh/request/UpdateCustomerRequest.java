@@ -11,6 +11,6 @@ public class UpdateCustomerRequest {
     private String mobile;
     private Gender gender;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate dob;
 }
