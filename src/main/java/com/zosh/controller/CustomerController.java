@@ -1,6 +1,7 @@
 package com.zosh.controller;
 
 import com.zosh.dto.CustomerProfileResponse;
+import com.zosh.exceptions.CustomerException;
 import com.zosh.model.Customer;
 import com.zosh.model.Home;
 import com.zosh.model.HomeCategory;
@@ -32,7 +33,7 @@ public class CustomerController {
     @PreAuthorize("hasAnyRole('CUSTOMER','KOC')")
     public ResponseEntity<CustomerProfileResponse> getCustomerProfile(
             @RequestHeader("Authorization") String jwt
-    ) throws Exception {
+    ) throws CustomerException {
         Customer customer = customerService.findCustomerProfileByJwt(jwt);
         return ResponseEntity.ok(new CustomerProfileResponse(customer));
     }

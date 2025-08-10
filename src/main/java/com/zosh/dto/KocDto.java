@@ -12,6 +12,7 @@ public class KocDto {
     Long id;
     String name;
     AccountStatus accountStatus;
+    String kocId;
     Long customerId;
     String email;
 }

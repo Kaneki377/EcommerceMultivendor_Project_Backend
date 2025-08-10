@@ -5,6 +5,8 @@ import com.zosh.exceptions.ProductException;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.Seller;
 import com.zosh.request.SellerSignUpRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -16,7 +18,7 @@ public interface SellerService {
     //Seller getSellerByEmail(String email) throws Exception;
     Seller getSellerByUsername(String username) throws SellerException;
 
-    List<Seller> getAllSellers(AccountStatus status);
+    Page<Seller> getAllSellers(AccountStatus status, Pageable pageable);
     Seller updateSeller(Long id, Seller seller) throws SellerException;
     void deleteSeller(Long id) throws SellerException;
     Seller verifyEmail(String email, String otp) throws SellerException;

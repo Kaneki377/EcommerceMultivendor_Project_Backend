@@ -16,6 +16,8 @@ import com.zosh.repository.SellerRepository;
 import com.zosh.request.SellerSignUpRequest;
 import com.zosh.service.SellerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -106,9 +108,11 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public List<Seller> getAllSellers(AccountStatus status) {
-        return sellerRepository.findByAccountStatus(status);
+    public Page<Seller> getAllSellers(AccountStatus status, Pageable pageable) {
+        if (status == null) return sellerRepository.findAll(pageable);
+        return sellerRepository.findByAccountStatus(status, pageable);
     }
+
 
     @Override
     public Seller updateSeller(Long id, Seller seller) throws SellerException {

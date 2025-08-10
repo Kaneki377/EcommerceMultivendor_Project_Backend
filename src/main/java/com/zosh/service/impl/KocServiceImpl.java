@@ -8,6 +8,7 @@ import com.zosh.model.Account;
 import com.zosh.model.Customer;
 import com.zosh.model.Koc;
 import com.zosh.model.Role;
+import com.zosh.repository.AccountRepository;
 import com.zosh.repository.CustomerRepository;
 import com.zosh.repository.KocRepository;
 import com.zosh.repository.RoleRepository;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -63,11 +65,11 @@ public class KocServiceImpl implements KocService {
         // Cập nhật customer + role
         customer.setKoc(true);
         Account account = customer.getAccount();
-        Role kocRole = roleRepository.findByName("ROLE_KOC");
-        account.setRole(kocRole);
+
         account.setIsEnabled(true);
         customerRepository.save(customer);
-
+//        Role kocRole = roleRepository.findByName("ROLE_KOC");
+//        account.setRole(kocRole);
         return kocRepository.save(koc);
     }
 
@@ -87,6 +89,7 @@ public class KocServiceImpl implements KocService {
                 k.getId(),
                 k.getCustomer().getFullName(),
                 k.getAccountStatus(),
+                k.getKocId(),
                 k.getCustomer().getId(),
                 k.getCustomer().getAccount() != null
                         ? k.getCustomer().getAccount().getEmail()
@@ -95,9 +98,23 @@ public class KocServiceImpl implements KocService {
     }
 
     @Override
+    @Transactional
     public Koc updateStatus(Long id, AccountStatus status) {
-        Koc koc = getById(id);
+        Koc koc = kocRepository.findById(id)
+                .orElseThrow(() -> new KocException("KOC not found"));
+
         koc.setAccountStatus(status);
+
+        if (status == AccountStatus.ACTIVE) {
+            Role kocRole = roleRepository.findByName("ROLE_KOC");
+            koc.getCustomer().getAccount().setRole(kocRole);
+            koc.getCustomer().setKoc(true); // ✅ ACTIVE thì isKoc = true
+        } else {
+            Role customerRole = roleRepository.findByName("ROLE_CUSTOMER");
+            koc.getCustomer().getAccount().setRole(customerRole);
+            koc.getCustomer().setKoc(false); // ✅ Không ACTIVE thì isKoc = false
+        }
+
         return kocRepository.save(koc);
     }
 }

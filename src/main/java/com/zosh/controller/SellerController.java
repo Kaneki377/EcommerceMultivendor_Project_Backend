@@ -15,6 +15,10 @@ import com.zosh.utils.OtpUtils;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -107,10 +111,23 @@ public class SellerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Seller>> getAllSellers(
-            @RequestParam(required = false) AccountStatus status) {
-        List<Seller> sellers = sellerService.getAllSellers(status);
-        return ResponseEntity.ok(sellers);
+    public ResponseEntity<Page<SellerProfileDto>> getAllSellers(
+            @RequestParam(required = false) AccountStatus status,
+            @RequestParam(defaultValue = "0") int page,      // 0-based
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort // "field,dir"
+    ) {
+        String[] parts = sort.split(",");
+        Sort s = parts.length == 2 ? Sort.by(Sort.Direction.fromString(parts[1]), parts[0])
+                : Sort.by(parts[0]);
+        Pageable pageable = PageRequest.of(page, size, s);
+
+        Page<Seller> result = sellerService.getAllSellers(status, pageable);
+
+        // map Page<Seller> -> Page<SellerProfileDto>
+        Page<SellerProfileDto> dtoPage = result.map(SellerProfileDto::fromEntity);
+
+        return ResponseEntity.ok(dtoPage);
     }
 
     @PatchMapping()

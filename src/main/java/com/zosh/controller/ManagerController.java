@@ -1,9 +1,11 @@
 package com.zosh.controller;
 
 import com.zosh.domain.AccountStatus;
+import com.zosh.dto.KocDto;
 import com.zosh.exceptions.SellerException;
 import com.zosh.exceptions.UserException;
 import com.zosh.model.HomeCategory;
+import com.zosh.model.Koc;
 import com.zosh.model.Seller;
 import com.zosh.model.User;
 import com.zosh.service.HomeCategoryService;
@@ -84,10 +86,26 @@ public class ManagerController {
 
     @PatchMapping("/koc/{id}/status/{status}")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<?> updateKocStatus(
+    public ResponseEntity<KocDto> updateKocStatus(
             @PathVariable Long id,
             @PathVariable AccountStatus status) {
 
-        return ResponseEntity.ok(kocService.updateStatus(id, status));
+        Koc koc = kocService.updateStatus(id, status);
+
+        // map entity -> dto
+        KocDto dto = new KocDto();
+        dto.setId(koc.getId());
+        dto.setName(koc.getCustomer().getFullName());
+        dto.setAccountStatus(koc.getAccountStatus());
+        dto.setKocId(koc.getKocId());
+        dto.setCustomerId(koc.getCustomer() != null ? koc.getCustomer().getId() : null);
+        dto.setEmail(
+                (koc.getCustomer() != null && koc.getCustomer().getAccount() != null)
+                        ? koc.getCustomer().getAccount().getEmail()
+                        : null
+        );
+
+        return ResponseEntity.ok(dto);
     }
+
 }
