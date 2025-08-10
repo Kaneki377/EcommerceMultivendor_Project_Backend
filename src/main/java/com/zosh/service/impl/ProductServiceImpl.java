@@ -1,5 +1,7 @@
 package com.zosh.service.impl;
 
+import com.zosh.domain.AccountStatus;
+import com.zosh.domain.ProductStatus;
 import com.zosh.exceptions.ProductException;
 import com.zosh.model.Category;
 import com.zosh.model.Product;
@@ -132,6 +134,11 @@ public class ProductServiceImpl implements ProductService {
         Specification<Product> specification = (root, query, criteriaBuilder) ->{
             List<Predicate> predicates = new ArrayList<>();
 
+            // chỉ show hàng ACTIVE + seller ACTIVE
+            predicates.add(criteriaBuilder.equal(root.get("status"), ProductStatus.ACTIVE));
+            Join<Product, Seller> sJoin = root.join("seller");
+            predicates.add(criteriaBuilder.equal(sJoin.get("accountStatus"), AccountStatus.ACTIVE));
+            predicates.add(criteriaBuilder.isTrue(root.get("in_stock")));
         //Áp dụng từng điều kiện lọc (filter)
             if(category != null) {
                 Join<Product, Category> categoryJoin = root.join("category");
@@ -158,8 +165,11 @@ public class ProductServiceImpl implements ProductService {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("discountPercent"), minDiscount));
             }
 
-            if(stock != null) {
-                predicates.add(criteriaBuilder.equal(root.get("stock"), stock));
+            if (stock == null || stock.isEmpty()) {
+                predicates.add(criteriaBuilder.isTrue(root.get("in_stock")));
+            } else {
+                boolean inStock = "true".equalsIgnoreCase(stock) || "in".equalsIgnoreCase(stock);
+                predicates.add(criteriaBuilder.equal(root.get("in_stock"), inStock));
             }
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

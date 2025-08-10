@@ -39,7 +39,7 @@ public class OrderController {
     private final TransactionService transactionService;
     private final OrderItemService orderItemService;
 
-    //Tạo đơn hàng mới và tạo link thanh toán Stripe
+    //Tạo đơn hàng mới và tạo link thanh toán Stripe , Paypal
     @PostMapping()
     public ResponseEntity<PaymentLinkResponse> createOrderHandler(
             @RequestBody Address shippingAddress,

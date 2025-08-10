@@ -84,7 +84,7 @@ public class SellerServiceImplTest {
         seller.setAccountStatus(AccountStatus.PENDING_VERIFICATION);
         seller = sellerRepository.save(seller);
 
-        Seller updated = sellerService.updateSellerAccountStatus(seller.getId(), AccountStatus.ACTIVE);
+        Seller updated = sellerService.updateSellerAccountStatus(seller.getId(), AccountStatus.ACTIVE,true);
         assertEquals(AccountStatus.ACTIVE, updated.getAccountStatus());
     }
 }

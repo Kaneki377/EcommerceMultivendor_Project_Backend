@@ -1,6 +1,7 @@
 package com.zosh.controller;
 
 import com.zosh.domain.AccountStatus;
+import com.zosh.domain.ProductStatus;
 import com.zosh.dto.KocDto;
 import com.zosh.exceptions.SellerException;
 import com.zosh.exceptions.UserException;
@@ -8,6 +9,7 @@ import com.zosh.model.HomeCategory;
 import com.zosh.model.Koc;
 import com.zosh.model.Seller;
 import com.zosh.model.User;
+import com.zosh.repository.ProductRepository;
 import com.zosh.service.HomeCategoryService;
 import com.zosh.service.KocService;
 import com.zosh.service.SellerService;
@@ -29,6 +31,7 @@ public class ManagerController {
     private final UserService userService;
     private final HomeCategoryService homeCategoryService;
     private final KocService kocService;
+    private final ProductRepository productRepository;
     @GetMapping("/profile")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<User>getUserProfile(@RequestHeader("Authorization") String jwt) throws UserException {
@@ -40,9 +43,11 @@ public class ManagerController {
     @PatchMapping("/seller/{id}/status/{status}")
     public ResponseEntity<Seller> updateSellerStatus(
             @PathVariable Long id,
-            @PathVariable AccountStatus status) throws SellerException {
+            @PathVariable AccountStatus status,
+            @RequestParam(name = "restoreProducts", defaultValue = "false") boolean restoreProducts)throws SellerException {
 
-        Seller updatedSeller = sellerService.updateSellerAccountStatus(id,status);
+        Seller updatedSeller = sellerService.updateSellerAccountStatus(id,status, restoreProducts);
+        long activeCount = productRepository.countBySellerIdAndStatus(id, ProductStatus.ACTIVE);
         return ResponseEntity.ok(updatedSeller);
 
     }
@@ -65,7 +70,7 @@ public class ManagerController {
         return ResponseEntity.ok(updatedCategory);
 
     }
-    // ManagerController.java (thêm các API quản trị KOC)
+
     @GetMapping("/koc")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<?> getAllKoc(

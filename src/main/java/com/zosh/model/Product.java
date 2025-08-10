@@ -1,6 +1,7 @@
 package com.zosh.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.zosh.domain.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -47,7 +48,9 @@ public class Product {
     private Seller seller;
 
     private LocalDateTime createdAt;
-
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status = ProductStatus.ACTIVE;
     private String Sizes;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -57,6 +60,8 @@ public class Product {
     @JsonIgnore
     @JoinColumn(name = "affiliate_campaign_id")
     private AffiliateCampaign affiliateCampaign;
+
+    @Column(name = "in_stock")
     private boolean in_stock = true;
 }
 

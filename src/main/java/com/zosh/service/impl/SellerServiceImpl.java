@@ -9,12 +9,10 @@ import com.zosh.mapper.SellerMapper;
 import com.zosh.model.Account;
 import com.zosh.model.Address;
 import com.zosh.model.Seller;
-import com.zosh.repository.AccountRepository;
-import com.zosh.repository.AddressRepository;
-import com.zosh.repository.RoleRepository;
-import com.zosh.repository.SellerRepository;
+import com.zosh.repository.*;
 import com.zosh.request.SellerSignUpRequest;
 import com.zosh.service.SellerService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +32,8 @@ public class SellerServiceImpl implements SellerService {
     private final AddressRepository addressRepository;
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
+    private final ProductRepository productRepository;
+
     @Override
     public Seller getSellerProfile(String jwt) throws SellerException {
         String username = jwtProvider.getUsernameFromJwtToken(jwt);
@@ -42,7 +42,7 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     public Seller createSeller(SellerSignUpRequest req) throws SellerException {
-    // Convert từ req sang Seller + Account + BusinessDetail + BankDetail + Address
+        // Convert từ req sang Seller + Account + BusinessDetail + BankDetail + Address
         // 1. Lấy username và email từ request
         String username = req.getAccount().getUsername();
         String email = req.getAccount().getEmail();
@@ -89,19 +89,11 @@ public class SellerServiceImpl implements SellerService {
         throw new SellerException("Seller not found");
     }
 
-//    @Override
-//    public Seller getSellerByEmail(String email) throws Exception {
-//        Seller seller = sellerRepository.findByAccount_Email(email);
-//        if(seller == null){
-//            throw new Exception("Seller not found ... !");
-//        }
-//        return seller;
-//    }
 
     @Override
     public Seller getSellerByUsername(String username) throws SellerException {
         Seller seller = sellerRepository.findByAccount_Username(username);
-        if(seller == null){
+        if (seller == null) {
             throw new SellerException("Seller not found ... !");
         }
         return seller;
@@ -198,9 +190,19 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
-    public Seller updateSellerAccountStatus(Long sellerId, AccountStatus status) throws SellerException {
-        Seller seller = this.getSellerById(sellerId);
+    @Transactional
+    public Seller updateSellerAccountStatus(Long sellerId, AccountStatus status, boolean restoreProducts) throws SellerException {
+        Seller seller = getSellerById(sellerId);
         seller.setAccountStatus(status);
+
+        if (status == AccountStatus.CLOSED) {
+            productRepository.bulkHideBySeller(sellerId); // ẩn hết
+            // seller.setClosedAt(LocalDateTime.now()); // nếu có field
+        }
+        if (status == AccountStatus.ACTIVE && restoreProducts) {
+            productRepository.bulkActivateHiddenBySeller(sellerId); // bật lại những sp đã ẩn
+        }
         return sellerRepository.save(seller);
     }
+
 }

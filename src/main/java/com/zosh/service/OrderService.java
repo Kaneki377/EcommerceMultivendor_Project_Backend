@@ -24,4 +24,6 @@ public interface OrderService {
     Order cancelOrder(long orderId, Customer customer) throws OrderException;
 
     public void deleteOrder(Long orderId) throws OrderException;
+
+    void onPaymentSuccess(PaymentOrder paymentOrder) throws OrderException;
 }

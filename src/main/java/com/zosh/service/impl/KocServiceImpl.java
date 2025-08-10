@@ -108,11 +108,11 @@ public class KocServiceImpl implements KocService {
         if (status == AccountStatus.ACTIVE) {
             Role kocRole = roleRepository.findByName("ROLE_KOC");
             koc.getCustomer().getAccount().setRole(kocRole);
-            koc.getCustomer().setKoc(true); // ✅ ACTIVE thì isKoc = true
+            koc.getCustomer().setKoc(true);
         } else {
             Role customerRole = roleRepository.findByName("ROLE_CUSTOMER");
             koc.getCustomer().getAccount().setRole(customerRole);
-            koc.getCustomer().setKoc(false); // ✅ Không ACTIVE thì isKoc = false
+            koc.getCustomer().setKoc(false);
         }
 
         return kocRepository.save(koc);

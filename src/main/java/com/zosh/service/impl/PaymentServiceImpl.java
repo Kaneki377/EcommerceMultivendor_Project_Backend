@@ -12,16 +12,14 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.zosh.domain.PaymentOrderStatus;
 import com.zosh.domain.PaymentStatus;
+import com.zosh.exceptions.OrderException;
 import com.zosh.model.*;
 import com.zosh.model.Order;
 import com.zosh.repository.CartRepository;
 import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
 import com.zosh.response.PaymentLinkResponse;
-import com.zosh.service.PaymentService;
-import com.zosh.service.SellerReportService;
-import com.zosh.service.SellerService;
-import com.zosh.service.TransactionService;
+import com.zosh.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -42,7 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final SellerService sellerService;
     private final SellerReportService sellerReportService;
     private final CartRepository cartRepository;
-
+    private final OrderService orderService;
     @Value("${stripe.api.key}")
     private String stripeSecretKey;
 
@@ -78,27 +76,30 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Boolean verifyStripePayment(String sessionId) throws StripeException {
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean verifyStripePayment(String sessionId) throws StripeException, OrderException {
         Stripe.apiKey = stripeSecretKey;
         Session session = Session.retrieve(sessionId);
 
-        if ("paid".equals(session.getPaymentStatus())) {
-            PaymentOrder paymentOrder = paymentOrderRepository.findByPaymentLinkId(sessionId);
-
-            if (paymentOrder != null && paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)) {
-                for (Order order : paymentOrder.getOrders()) {
-                    order.setPaymentStatus(PaymentStatus.COMPLETED);
-                    orderRepository.save(order);
-                }
-                paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
-                paymentOrderRepository.save(paymentOrder);
-                return true;
-            }
-            paymentOrder.setStatus(PaymentOrderStatus.FAILED);
-            paymentOrderRepository.save(paymentOrder);
+        if (!"paid".equals(session.getPaymentStatus())) {
+            return false;
         }
 
-        return false;
+        PaymentOrder paymentOrder = paymentOrderRepository.findByPaymentLinkId(sessionId);
+        if (paymentOrder == null) return false;
+
+        // Idempotent: chỉ xử lý nếu còn PENDING
+        if (paymentOrder.getStatus() != PaymentOrderStatus.PENDING) {
+            return false;
+        }
+
+        // Trừ kho + set order COMPLETED + clear cart... (tất cả trong @Transactional)
+        orderService.onPaymentSuccess(paymentOrder);
+
+        paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
+        paymentOrderRepository.save(paymentOrder);
+
+        return true;
     }
 
     @Override

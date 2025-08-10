@@ -8,9 +8,12 @@ import com.zosh.model.*;
 import com.zosh.repository.AddressRepository;
 import com.zosh.repository.OrderItemRepository;
 import com.zosh.repository.OrderRepository;
+import com.zosh.repository.ProductRepository;
 import com.zosh.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,6 +27,8 @@ public class OrderServiceImpl implements OrderService {
     private final AddressRepository addressRepository;
 
     private final OrderItemRepository orderItemRepository;
+
+    private final ProductRepository productRepository;
 
     @Override
     public Set<Order> createOrder(Customer customer, Address shippingAddress, Cart cart) {
@@ -134,5 +139,25 @@ public class OrderServiceImpl implements OrderService {
         Order order = findOrderById(orderId);
 
         orderRepository.deleteById(orderId);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    @Override
+    public void onPaymentSuccess(PaymentOrder paymentOrder) throws OrderException {
+        for (Order order : paymentOrder.getOrders()) {
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = productRepository.lockById(item.getProduct().getId())
+                        .orElseThrow(() -> new RuntimeException("Product not found"));
+
+                int newQty = product.getQuantity() - item.getQuantity();
+                if (newQty < 0) throw new RuntimeException("Out of stock");
+
+                product.setQuantity(newQty);
+                product.setIn_stock(newQty > 0);
+                productRepository.save(product);
+            }
+            order.setPaymentStatus(PaymentStatus.COMPLETED);
+            orderRepository.save(order);
+        }
     }
 }
