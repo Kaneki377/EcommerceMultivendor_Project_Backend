@@ -41,6 +41,7 @@ public class SellerServiceImpl implements SellerService {
     }
 
     @Override
+    @Transactional
     public Seller createSeller(SellerSignUpRequest req) throws SellerException {
         // Convert từ req sang Seller + Account + BusinessDetail + BankDetail + Address
         // 1. Lấy username và email từ request

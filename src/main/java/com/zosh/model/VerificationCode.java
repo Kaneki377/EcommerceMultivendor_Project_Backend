@@ -30,6 +30,4 @@ public class VerificationCode {
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date expiresAt;
-
-    private String role;
 }

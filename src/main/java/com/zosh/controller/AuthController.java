@@ -78,7 +78,7 @@ public class AuthController {
     @PostMapping("admin/login")
     public ResponseEntity<AuthResponse> loginAdmin(@Valid @RequestBody LoginAdminRequest req) throws Exception {
         AuthResponse authResponse = authService.loginAdmin(req);
-        authResponse.setMessage("Welcome Admin!");
+        authResponse.setMessage("Welcome Manager!");
         return ResponseEntity.ok(authResponse);
     }
 }
