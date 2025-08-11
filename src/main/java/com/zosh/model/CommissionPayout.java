@@ -35,4 +35,13 @@ public class CommissionPayout {
         PAID,
         FAILED
     }
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "processed_at")
+    private LocalDateTime processedAt;
+
+    @Column(name = "transaction_id", length = 64)
+    private String transactionId;
 }

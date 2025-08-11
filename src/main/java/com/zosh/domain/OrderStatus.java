@@ -5,6 +5,7 @@ public enum OrderStatus {
     PLACED,
     CONFIRMED,
     SHIPPED,
-    DELIVERED,
-    CANCELLED
+    DELIVERED, //Trang thai don hang được giao nhưng còn có thể b hoàn trả
+    CANCELLED,
+    COMPLETETED //Trang thai don hang hoan toan duoc thanh toan
 }

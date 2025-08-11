@@ -5,6 +5,7 @@ import com.zosh.domain.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,4 +54,7 @@ public class Order {
     private LocalDateTime orderDate = LocalDateTime.now();
 
     private LocalDateTime deliverDate = orderDate.plusDays(7);
+
+    @Column(name = "net_paid_amount", precision = 18, scale = 2)
+    private BigDecimal netPaidAmount; // tổng sau chiết khấu nền tảng + seller + thuế + phí
 }

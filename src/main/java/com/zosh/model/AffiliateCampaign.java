@@ -22,7 +22,6 @@ public class AffiliateCampaign {
     @Column(unique = true, nullable = false)
     private String campaignCode;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", nullable = false)
     private Seller seller;
@@ -37,12 +36,16 @@ public class AffiliateCampaign {
     @Column(name = "create_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "start_at")
+    private LocalDateTime startAt;
+
     @Column(name = "expried")
     private LocalDateTime expiredAt;
+
     private Boolean active;
 
     @OneToMany(mappedBy = "affiliateCampaign", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Product> products = new ArrayList<>();
+    private List<CampaignProduct> campaignProducts = new ArrayList<>();
 
 }

@@ -32,5 +32,5 @@ public class Payouts {
 
     private PayoutsStatus status = PayoutsStatus.PENDING;
 
-    private LocalDateTime data=LocalDateTime.now();
+    private LocalDateTime dateTime =LocalDateTime.now();
 }
