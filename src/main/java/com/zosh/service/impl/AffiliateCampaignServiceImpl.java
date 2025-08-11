@@ -11,10 +11,12 @@ import com.zosh.repository.ProductRepository;
 import com.zosh.repository.SellerRepository;
 import com.zosh.request.CreateAffiliateCampaignRequest;
 import com.zosh.service.AffiliateCampaignService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -28,8 +30,8 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
     private final ProductRepository productRepository;
     private final JwtProvider jwtProvider;
 
-
     @Override
+    @Transactional
     public AffiliateCampaign createCampaign(Long sellerId, CreateAffiliateCampaignRequest request) throws SellerException,ProductException{
 
         // 1. Tìm Seller
@@ -63,14 +65,19 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
         campaign.setDescription(request.getDescription());
         campaign.setCommissionPercent(request.getCommissionPercent());
         campaign.setCreatedAt(LocalDateTime.now());
+       // campaign.setStartAt(request.getStartAt());
         campaign.setExpiredAt(request.getExpiredAt());
         campaign.setActive(false); // mặc định false khi mới tạo
 
         // 4. Gán campaign cho từng Product
-        allProducts.forEach(product -> product.setAffiliateCampaign(campaign));
+        // Sau khi tạo AffiliateCampaign campaign = new AffiliateCampaign(); ... set fields ...
+        AffiliateCampaign saved = affiliateCampaignRepository.save(campaign);
+
+        // Tạo bản ghi trung gian cho từng product
+        productRepository.assignCampaignToProducts(saved, request.getProductIds());
 
         // 5. Lưu campaign (do cascade sẽ lưu luôn products nếu đã set mappedBy)
-        return affiliateCampaignRepository.save(campaign);
+        return saved;
     }
 
     @Override
@@ -110,6 +117,7 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
     }
 
     @Override
+    @Transactional
     public void deleteCampaign(Long campaignId, Long sellerId) throws Exception {
         AffiliateCampaign campaign = affiliateCampaignRepository.findById(campaignId)
                 .orElseThrow(() -> new Exception("Campaign not found"));
@@ -117,6 +125,8 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
         if (!campaign.getSeller().getId().equals(sellerId)) {
             throw new Exception("You do not have permission to delete this campaign");
         }
+        // Cách A: xóa join trước để tránh lỗi FK
+        productRepository.detachCampaignFromProducts(campaignId);
 
         affiliateCampaignRepository.delete(campaign);
     }

@@ -44,8 +44,8 @@ public class AffiliateCampaign {
 
     private Boolean active;
 
-    @OneToMany(mappedBy = "affiliateCampaign", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "affiliateCampaign", fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<CampaignProduct> campaignProducts = new ArrayList<>();
+    private List<Product> products = new ArrayList<>();
 
 }

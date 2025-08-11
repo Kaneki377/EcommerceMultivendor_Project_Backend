@@ -1,5 +1,6 @@
 package com.zosh.repository;
 
+import aj.org.objectweb.asm.commons.Remapper;
 import com.zosh.model.AffiliateRegistration;
 import com.zosh.model.AffiliateCampaign;
 import com.zosh.model.Koc;
@@ -25,4 +26,8 @@ public interface AffiliateRegistrationRepository extends JpaRepository<Affiliate
 
     // Optional: lọc theo status
     List<AffiliateRegistration> findByCampaign_Seller_IdAndStatus(Long sellerId, RegistrationStatus status);
+
+    Remapper findByKoc_IdAndCampaign_Id(Long kocId, Long campaignId);
+
+    boolean existsByKoc_IdAndCampaign_IdAndStatus(Long kocId, Long campaignId, RegistrationStatus status);
 }

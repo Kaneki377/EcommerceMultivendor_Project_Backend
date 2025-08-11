@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Lock;
 import jakarta.persistence.LockModeType;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,5 +59,17 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
     @Query("select p from Product p where p.id = :id")
     Optional<Product> lockById(@Param("id") Long id);
 
+    List<Product> findAllById(Iterable<Long> ids);
+
+    // Gán campaign cho danh sách sản phẩm
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Product p set p.affiliateCampaign = :campaign where p.id in :ids")
+    int assignCampaignToProducts(@Param("campaign") com.zosh.model.AffiliateCampaign campaign,
+                                 @Param("ids") Collection<Long> ids);
+
+    // Gỡ campaign khỏi tất cả sản phẩm của campaign
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Product p set p.affiliateCampaign = null where p.affiliateCampaign.id = :campaignId")
+    int detachCampaignFromProducts(@Param("campaignId") Long campaignId);
 }
 
