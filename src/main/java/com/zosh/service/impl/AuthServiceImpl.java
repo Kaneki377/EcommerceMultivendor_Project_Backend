@@ -204,7 +204,9 @@ public class AuthServiceImpl implements AuthService {
         if (seller.getAccountStatus() == AccountStatus.PENDING_VERIFICATION) {
             throw new InvalidRoleLoginException("Seller account is not active yet");
         }
-
+        if (seller.getAccountStatus() == AccountStatus.CLOSED) {
+            throw new InvalidRoleLoginException("Seller is closed shop! Please contact with admin to active shop");
+        }
         // 4. Tạo JWT
         String token = jwtProvider.generateToken(authentication);
 

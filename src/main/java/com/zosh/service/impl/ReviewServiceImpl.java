@@ -21,21 +21,23 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public Review createReview(CreateReviewRequest request, Customer customer, Product product) {
-       Review review = new Review();
-       review.setCustomer(customer);
-       review.setProduct(product);
-       review.setReviewText(request.getReviewText());
-       review.setRating(review.getRating());
-       review.setProductImages(request.getProductImages());
+        Review newReview = new Review();
 
-       product.getReviews().add(review);
+        newReview.setReviewText(request.getReviewText());
+        newReview.setRating(request.getReviewRating());
+        newReview.setProductImages(request.getProductImages());
+        newReview.setCustomer(customer);
+        newReview.setProduct(product);
 
-        return reviewRepository.save(review);
+        product.getReviews().add(newReview);
+
+        return reviewRepository.save(newReview);
     }
 
     @Override
     public List<Review> getReviewByProductId(Long productId) {
-        return reviewRepository.findByProductId(productId);
+
+        return reviewRepository.findReviewsByProductId(productId);
     }
 
     @Override
