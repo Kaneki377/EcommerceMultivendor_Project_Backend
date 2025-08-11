@@ -1,10 +1,7 @@
 package com.zosh.model;
 
 import com.zosh.domain.HomeCategorySection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -13,6 +10,10 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@Table(
+        name = "home_category",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"section","category_id"})
+)
 public class HomeCategory {
 
     @Id

@@ -49,9 +49,9 @@ public class CustomerController {
 
     @GetMapping("/home-page")
     public ResponseEntity<Home> getHomePageData() {
-//        Home homePageData = homeService.getHomePageData();
-//        return new ResponseEntity<>(homePageData, HttpStatus.ACCEPTED);
-        return null;
+        Home homePageData = homeService.getHomePageData(); // nhớ implement trong service
+        return ResponseEntity.ok(homePageData);
+//        return null;
     }
 
     @PostMapping("/home/categories")

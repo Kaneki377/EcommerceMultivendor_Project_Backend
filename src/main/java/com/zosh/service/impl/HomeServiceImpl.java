@@ -5,6 +5,7 @@ import com.zosh.model.Deal;
 import com.zosh.model.Home;
 import com.zosh.model.HomeCategory;
 import com.zosh.repository.DealRepository;
+import com.zosh.repository.HomeCategoryRepository;
 import com.zosh.service.HomeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class HomeServiceImpl implements HomeService {
 
     private final DealRepository dealRepository;
+    private final HomeCategoryRepository homeCategoryRepository;
 
     @Override
     public Home creatHomePageData(List<HomeCategory> allCategories) {
@@ -59,6 +61,35 @@ public class HomeServiceImpl implements HomeService {
         home.setDeals(createdDeals);
         home.setDealCategories(dealCategories);
 
+        return home;
+    }
+
+    @Override
+    public Home getHomePageData() {
+        // Lấy tất cả category từ DB rồi group theo section
+        List<HomeCategory> all = homeCategoryRepository.findAll();
+
+        var bySection = all.stream()
+                .collect(Collectors.groupingBy(HomeCategory::getSection));
+
+        List<HomeCategory> grid =
+                bySection.getOrDefault(HomeCategorySection.GRID, List.of());
+        List<HomeCategory> shopByCategories =
+                bySection.getOrDefault(HomeCategorySection.SHOP_BY_CATEGORIES, List.of());
+        List<HomeCategory> electricCategories =
+                bySection.getOrDefault(HomeCategorySection.ELECTRIC_CATEGORIES, List.of());
+        List<HomeCategory> dealCategories =
+                bySection.getOrDefault(HomeCategorySection.DEALS, List.of());
+
+        // Deals: chỉ đọc, không tạo mới ở GET
+        List<Deal> deals = dealRepository.findAll();
+
+        Home home = new Home();
+        home.setGrid(grid);
+        home.setShopByCategories(shopByCategories);
+        home.setElectricCategories(electricCategories);
+        home.setDealCategories(dealCategories);
+        home.setDeals(deals);
         return home;
     }
 }

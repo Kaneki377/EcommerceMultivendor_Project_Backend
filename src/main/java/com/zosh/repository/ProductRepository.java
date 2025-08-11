@@ -53,6 +53,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
 
     long countBySellerIdAndStatus(Long sellerId, ProductStatus status);
 
+    //khóa product cho đến khi transaction commit/rollback
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from Product p where p.id = :id")
     Optional<Product> lockById(@Param("id") Long id);
