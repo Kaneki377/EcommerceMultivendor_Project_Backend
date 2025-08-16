@@ -150,7 +150,7 @@ public class ProductServiceImpl implements ProductService {
             }
 
             if(sizes != null && !sizes.isEmpty()) {
-                predicates.add(criteriaBuilder.equal(root.get("size"), sizes));
+                predicates.add(criteriaBuilder.equal(root.get("Sizes"), sizes));
             }
 
             if(minPrice != null){

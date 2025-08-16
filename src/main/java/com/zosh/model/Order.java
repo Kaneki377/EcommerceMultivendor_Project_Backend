@@ -45,10 +45,12 @@ public class Order {
 
     private Integer discount;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
 
     private int totalItem;
 
+    @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
     private LocalDateTime orderDate = LocalDateTime.now();

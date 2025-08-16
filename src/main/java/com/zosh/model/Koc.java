@@ -17,8 +17,8 @@ public class Koc {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "koc_id", unique = true, nullable = false)
-    private String kocId;
+    @Column(name = "koc_code", unique = true, nullable = false)
+    private String kocCode;
 
     @Enumerated(EnumType.STRING)
     private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
@@ -42,12 +42,11 @@ public class Koc {
     @Column(name = "joined_at")
     private LocalDateTime joinedAt;
 
-    @Column(name = "referral_code", unique = true)
-    private String referralCode;
+    private String stripeAccountId;
 
-    @Column(name = "bank_account_number")
-    private String bankAccountNumber;
+    @Column(name = "stripe_payouts_enabled")
+    private Boolean stripePayoutsEnabled = Boolean.FALSE;
 
-    @Column(name = "bank_name")
-    private String bankName;
+    @Column(name = "stripe_onboarded_at")
+    private LocalDateTime stripeOnboardedAt;
 }

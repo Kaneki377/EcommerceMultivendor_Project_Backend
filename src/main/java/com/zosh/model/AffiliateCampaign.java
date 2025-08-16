@@ -36,9 +36,6 @@ public class AffiliateCampaign {
     @Column(name = "create_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "start_at")
-    private LocalDateTime startAt;
-
     @Column(name = "expried")
     private LocalDateTime expiredAt;
 

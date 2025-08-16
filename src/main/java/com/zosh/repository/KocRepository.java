@@ -28,7 +28,7 @@ public interface KocRepository extends JpaRepository<Koc, Long> {
     // Tìm tất cả KOC theo thời gian tham gia
     List<Koc> findByJoinedAtAfter(LocalDateTime joinedAt);
 
-    Optional<Koc> findByKocId(String kocId);
+    Optional<Koc> findByKocCode(String kocCode);
 
     Optional<Koc> findByCustomer_Account_Username(String username);
     Page<Koc> findByAccountStatus(AccountStatus status, Pageable pageable);

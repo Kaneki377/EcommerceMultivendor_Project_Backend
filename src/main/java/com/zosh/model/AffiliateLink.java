@@ -13,6 +13,16 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name="uk_link_koc_cmp_prod", columnNames = {"koc_id","campaign_id","product_id"})
+        },
+        indexes = {
+                @Index(name="idx_link_campaign", columnList="campaign_id"),
+                @Index(name="idx_link_product", columnList="product_id"),
+                @Index(name="idx_link_koc", columnList="koc_id")
+        }
+)
 public class AffiliateLink {
 
     @Id
@@ -34,9 +44,10 @@ public class AffiliateLink {
     @JoinColumn(name = "koc_id", nullable = false)
     private Koc koc;
 
-    // Mã ngắn, duy nhất
-    @Column(unique = true, nullable = false, length = 32)
-    private String code;
+    @Column(name="short_token", length=22, nullable=false, unique = true) // Base62 của id hoặc ULID
+    private String shortToken;
+
+    private int totalClick;
 
     // URL gốc (nội bộ hay ngoài đều được)
     @Column(name = "target_url", length = 512)

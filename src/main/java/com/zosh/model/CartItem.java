@@ -31,4 +31,8 @@ public class CartItem {
     private Integer sellingPrice;
 
     private Long customerId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "affiliate_link_id")
+    private AffiliateLink affiliateLink;
 }

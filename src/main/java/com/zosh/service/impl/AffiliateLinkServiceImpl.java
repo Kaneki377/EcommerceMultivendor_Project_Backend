@@ -8,18 +8,16 @@ import com.zosh.model.Koc;
 import com.zosh.model.Product;
 import com.zosh.repository.*;
 import com.zosh.response.AffiliateLinkResponse;
-import com.zosh.response.ClickStatsResponse;
+import com.zosh.service.AffiliateCampaignService;
 import com.zosh.service.AffiliateLinkService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDate;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,10 +28,15 @@ public class AffiliateLinkServiceImpl implements AffiliateLinkService {
     private final KocRepository kocRepository;
     private final AffiliateCampaignRepository campaignRepository;
     private final ProductRepository productRepository;
-    private final ClickEventRepository clickEventRepository;
     private final AffiliateRegistrationRepository registrationRepository;
+    private final AffiliateCampaignService affiliateCampaignService;
+
+
+    private static final char[] BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
+    private static final SecureRandom RNG = new java.security.SecureRandom();
 
     @Override
+    @Transactional
     public AffiliateLinkResponse createAffiliateLink(Long kocId, Long campaignId, Long productId, String targetUrl) {
         Koc koc = kocRepository.findById(kocId)
                 .orElseThrow(() -> new KocException("KOC not found"));
@@ -41,56 +44,71 @@ public class AffiliateLinkServiceImpl implements AffiliateLinkService {
         AffiliateCampaign campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new RuntimeException("Campaign not found"));
 
-        // KOC phải đã được APPROVED trong campaign
+        // Campaign phải đang/được phép hoạt động để tạo link
+        if (!affiliateCampaignService.isActive(campaign)) {
+            throw new RuntimeException("Campaign is not active");
+        }
+
         boolean approved = registrationRepository
                 .existsByKoc_IdAndCampaign_IdAndStatus(kocId, campaignId, RegistrationStatus.APPROVED);
-
-        if (!approved) {
-            throw new RuntimeException("KOC is not approved for this campaign");
-        }
+        if (!approved) throw new RuntimeException("KOC is not approved for this campaign");
 
         Product product = null;
         if (productId != null) {
             product = productRepository.findById(productId)
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 
-            // Kiểm tra product thuộc đúng campaign (Many-to-One)
             if (product.getAffiliateCampaign() == null ||
                     !product.getAffiliateCampaign().getId().equals(campaignId)) {
                 throw new RuntimeException("Product is not in this campaign");
             }
+            // không tạo trùng link theo bộ (koc, campaign, product)
+            affiliateLinkRepository.findByKoc_IdAndCampaign_IdAndProduct_Id(kocId, campaignId, productId)
+                    .ifPresent(x -> { throw new RuntimeException("Link already exists for this KOC/campaign/product"); });
+        } else {
+            // link toàn campaign: (koc, campaign, product=null) duy nhất
+            affiliateLinkRepository.findByKoc_IdAndCampaign_IdAndProduct_IsNull(kocId, campaignId)
+                    .ifPresent(x -> { throw new RuntimeException("Campaign-wide link already exists for this KOC"); });
         }
 
-        // Sinh code ngắn duy nhất
-        String code = generateShortCode();
+        // Build targetUrl theo yêu cầu
+        String resolvedTarget = resolveTargetUrl(targetUrl, campaign, product, koc);
 
-        String resolvedTarget = resolveTargetUrl(targetUrl, campaign, product);
-        String generatedUrl = "/r/" + code;
-
+        // Tạo link
         AffiliateLink link = new AffiliateLink();
         link.setKoc(koc);
         link.setCampaign(campaign);
         link.setProduct(product);
-        link.setCode(code);
         link.setTargetUrl(resolvedTarget);
-        link.setGeneratedUrl(generatedUrl);
         link.setCreatedAt(LocalDateTime.now());
+        link.setTotalClick(0);
 
-        affiliateLinkRepository.save(link);
+        // shortToken (ULID/Random Base62)
+        String token = generateShortToken();
+        // đảm bảo duy nhất
+        while (affiliateLinkRepository.findByShortToken(token).isPresent()) {
+            token = generateShortToken();
+        }
+        link.setShortToken(token);
+
+        // generatedUrl dùng shortToken
+        link.setGeneratedUrl("/r/" + token);
+
+        link = affiliateLinkRepository.save(link);
 
         return AffiliateLinkResponse.builder()
                 .id(link.getId())
                 .campaignId(campaignId)
                 .productId(productId)
-                .code(code)
                 .targetUrl(resolvedTarget)
-                .generatedUrl(generatedUrl)
+                .generatedUrl(link.getGeneratedUrl())
                 .createdAt(link.getCreatedAt())
-                .totalClicks(0L)
+                .totalClicks((long) link.getTotalClick())
                 .build();
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<AffiliateLinkResponse> getLinksByKoc(Long kocId) {
         return affiliateLinkRepository.findByKoc_Id(kocId)
                 .stream()
@@ -98,67 +116,47 @@ public class AffiliateLinkServiceImpl implements AffiliateLinkService {
                         .id(l.getId())
                         .campaignId(l.getCampaign().getId())
                         .productId(l.getProduct() != null ? l.getProduct().getId() : null)
-                        .code(l.getCode())
                         .targetUrl(l.getTargetUrl())
                         .generatedUrl(l.getGeneratedUrl())
                         .createdAt(l.getCreatedAt())
-                        .totalClicks(clickEventRepository.countByAffiliateLink_Id(l.getId()))
+                        .totalClicks((long) l.getTotalClick())
                         .build())
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public AffiliateLink getByCode(String code) {
-        return affiliateLinkRepository.findByCode(code)
+    // Redirect dùng token
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public AffiliateLink getByShortToken(String token) {
+        return affiliateLinkRepository.findByShortToken(token)
                 .orElseThrow(() -> new RuntimeException("Affiliate link not found"));
     }
 
-    @Override
-    public ClickStatsResponse getLinkStats(Long linkId, LocalDateTime from, LocalDateTime to) {
-        // khoảng mặc định 30 ngày gần nhất
-        if (from == null || to == null) {
-            to = LocalDateTime.now();
-            from = to.minusDays(30);
-        }
+    // ================= helpers =================
 
-        long total = clickEventRepository.countByAffiliateLink_IdAndCreatedAtBetween(linkId, from, to);
-        long uniqueSessions = clickEventRepository.countDistinctSessionId(linkId, from, to);
-
-        Map<LocalDate, Long> byDate = new LinkedHashMap<>();
-        List<Object[]> rows = clickEventRepository.aggregateDaily(linkId, from, to);
-        for (Object[] row : rows) {
-            // row[0] là java.sql.Date hoặc LocalDate (tuỳ JPA provider)
-            LocalDate d = (row[0] instanceof LocalDate)
-                    ? (LocalDate) row[0]
-                    : ((java.sql.Date) row[0]).toLocalDate();
-            long cnt = ((Number) row[1]).longValue();
-            byDate.put(d, cnt);
-        }
-
-        return ClickStatsResponse.builder()
-                .linkId(linkId)
-                .totalClicks(total)
-                .uniqueSessions(uniqueSessions)
-                .clicksByDate(byDate)
-                .build();
-    }
-
-    // ========== helpers ==========
-    private String generateShortCode() {
-        // 8 ký tự base36
-        String code = Long.toString(Math.abs(new Random().nextLong()), 36);
-        code = code.substring(0, Math.min(8, code.length())).toUpperCase();
-        // đảm bảo duy nhất
-        while (affiliateLinkRepository.findByCode(code).isPresent()) {
-            code = Long.toString(Math.abs(new Random().nextLong()), 36);
-            code = code.substring(0, Math.min(8, code.length())).toUpperCase();
-        }
-        return code;
-    }
-
-    private String resolveTargetUrl(String targetUrl, AffiliateCampaign campaign, Product product) {
+    private String resolveTargetUrl(String targetUrl, AffiliateCampaign campaign, Product product, Koc koc) {
         if (StringUtils.hasText(targetUrl)) return targetUrl;
-        if (product != null) return "/products/" + product.getId();
-        return "/campaigns/" + campaign.getId();
+
+        // Theo yêu cầu: /products/{productId}?koc={kocCode}&cmp={campaignCode}
+        if (product != null) {
+            return "/products/" + product.getId()
+                    + "?koc=" + koc.getKocCode()
+                    + "&cmp=" + campaign.getCampaignCode();
+        }
+        // Nếu link toàn campaign: có thể điều hướng trang campaign
+        return "/campaigns/" + campaign.getId()
+                + "?koc=" + koc.getKocCode()
+                + "&cmp=" + campaign.getCampaignCode();
     }
+
+
+    private String generateShortToken() {
+        int len = 12;
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i < len; i++) {
+            sb.append(BASE62[RNG.nextInt(BASE62.length)]);
+        }
+        return sb.toString();
+    }
+
+
 }

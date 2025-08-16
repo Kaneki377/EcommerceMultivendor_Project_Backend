@@ -1,9 +1,11 @@
 package com.zosh.controller;
 
 import com.zosh.model.AffiliateLink;
+import com.zosh.repository.AffiliateLinkRepository;
+import com.zosh.service.AffiliateCampaignService;
 import com.zosh.service.AffiliateLinkService;
-import com.zosh.service.ClickEventService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,19 +19,26 @@ import org.springframework.web.bind.annotation.RestController;
 public class RedirectController {
 
     private final AffiliateLinkService affiliateLinkService;
-    private final ClickEventService clickEventService;
+    private final AffiliateLinkRepository affiliateLinkRepository;
+    private final AffiliateCampaignService affiliateCampaignService;
 
-    // VD: /r/AB12CD34
-    @GetMapping("/r/{code}")
-    public ResponseEntity<Void> redirect(@PathVariable String code, HttpServletRequest request) {
-        AffiliateLink link = affiliateLinkService.getByCode(code);
+    // Ví dụ: /r/l/123   (123 = id của AffiliateLink)
+    // /r/{shortToken}
+    @GetMapping("/r/{token:[0-9A-Za-z]{8,22}}") //Tranh path injection
+    @Transactional
+    public ResponseEntity<Void> redirect(@PathVariable("token") String token) {
+        var link = affiliateLinkService.getByShortToken(token);
 
-        // Ghi sự kiện click
-        clickEventService.recordClick(link, request);
+        // chặn nếu campaign/link không active
+        if (!affiliateCampaignService.isActive(link.getCampaign())) {
+            return ResponseEntity.status(HttpStatus.GONE).build(); // 410 Gone
+        }
 
-        // Redirect 302
+        // Tăng đếm click (atomic)
+        affiliateLinkRepository.incrementClick(link.getId());
+
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Location", link.getTargetUrl());
+        headers.add("Location", link.getTargetUrl()); // ví dụ /products/123?koc=KOC001&cmp=AFF-SELLER-1
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 }

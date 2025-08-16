@@ -2,20 +2,19 @@ package com.zosh.controller;
 
 import com.zosh.config.JwtProvider;
 import com.zosh.dto.AffiliateRegistrationResponse;
+import com.zosh.dto.CommissionDTO;
 import com.zosh.exceptions.KocException;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.AffiliateRegistration;
 import com.zosh.model.Koc;
 import com.zosh.repository.KocRepository;
-import com.zosh.request.ClickQueryRequest;
+import com.zosh.repository.OrderItemRepository;
+import com.zosh.repository.PayoutItemRepository;
 import com.zosh.request.CreateAffiliateLinkRequest;
 import com.zosh.request.CreateKocRequest;
 import com.zosh.response.AffiliateLinkResponse;
-import com.zosh.response.ClickEventResponse;
-import com.zosh.response.ClickStatsResponse;
 import com.zosh.service.AffiliateLinkService;
 import com.zosh.service.AffiliateRegistrationService;
-import com.zosh.service.ClickEventService;
 import com.zosh.service.KocService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -34,10 +32,11 @@ public class KocController {
 
     private final KocService kocService;
     private final AffiliateLinkService affiliateLinkService;
-    private final ClickEventService clickEventService;
     private final JwtProvider jwtProvider;
     private final KocRepository kocRepository;
     private final AffiliateRegistrationService registrationService;
+    private final OrderItemRepository orderItemRepository;
+    private final PayoutItemRepository payoutItemRepository;
 
     @PostMapping("/create")
     public ResponseEntity<?> createKoc(@Valid @RequestBody CreateKocRequest request) {
@@ -51,10 +50,12 @@ public class KocController {
 
 
     @GetMapping("/test")
-    @PreAuthorize("hasRole('ROLE_KOC')")
+    @PreAuthorize("hasRole('KOC')")
     public ResponseEntity<String> testKocRole() {
+
         return ResponseEntity.ok("Access granted for ROLE_KOC");
     }
+
     // KOC đăng ký chiến dịch
     @PostMapping("/register-campaign/{campaignId}")
     @PreAuthorize("hasRole('KOC')")
@@ -86,7 +87,7 @@ public class KocController {
     @PostMapping("/affiliate-links")
     @PreAuthorize("hasRole('KOC')")
     public ResponseEntity<AffiliateLinkResponse> createLink(
-            @RequestBody CreateAffiliateLinkRequest req,
+            @RequestBody @Valid CreateAffiliateLinkRequest req,
             @RequestHeader("Authorization") String jwt) {
 
         Long kocId = currentKocId(jwt);
@@ -99,6 +100,7 @@ public class KocController {
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
+
     @GetMapping("/affiliate-links")
     @PreAuthorize("hasRole('KOC')")
     public ResponseEntity<List<AffiliateLinkResponse>> myLinks(
@@ -107,37 +109,29 @@ public class KocController {
         return ResponseEntity.ok(affiliateLinkService.getLinksByKoc(kocId));
     }
 
-    @GetMapping("/affiliate-links/{linkId}/stats")
+    @GetMapping("/commissions/payable")
     @PreAuthorize("hasRole('KOC')")
-    public ResponseEntity<ClickStatsResponse> linkStats(
-            @PathVariable Long linkId,
-            @RequestParam(required = false) String from,
-            @RequestParam(required = false) String to,
-            @RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<List<CommissionDTO>> myPayable(@RequestHeader("Authorization") String jwt) {
+        String username = jwtProvider.getUsernameFromJwtToken(jwt);
+        Long kocId = kocRepository.findByCustomer_Account_Username(username)
+                .orElseThrow(() -> new KocException("KOC doesn't exist"))
+                .getId();
 
-        // chỉ convert nhanh – bạn có thể dùng formatter nếu cần
-        LocalDateTime fromDt = (from != null) ? LocalDateTime.parse(from) : null;
-        LocalDateTime toDt = (to != null) ? LocalDateTime.parse(to) : null;
+        var items = orderItemRepository.findPayableByKoc(kocId).stream()
+                .filter(oi -> !payoutItemRepository.existsByOrderItem_Id(oi.getId()))
+                .map(oi -> CommissionDTO.builder()
+                        .orderItemId(oi.getId())
+                        .orderId(oi.getOrder().getId())
+                        .productId(oi.getProduct().getId())
+                        .campaignId(oi.getAffiliateLink().getCampaign().getId())
+                        .kocId(oi.getAffiliateLink().getKoc().getId())
+                        .commissionAmount(oi.getCommissionAmount())
+                        .status(oi.getCommissionStatus())
+                        .attributedAt(oi.getAttributedAt())
+                        .build())
+                .toList();
 
-        return ResponseEntity.ok(affiliateLinkService.getLinkStats(linkId, fromDt, toDt));
+        return ResponseEntity.ok(items);
     }
 
-    @GetMapping("/affiliate-links/{linkId}/clicks")
-    @PreAuthorize("hasRole('KOC')")
-    public ResponseEntity<List<ClickEventResponse>> listClicks(
-            @PathVariable Long linkId,
-            @RequestParam(required = false) String from,
-            @RequestParam(required = false) String to,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestHeader("Authorization") String jwt) {
-
-        ClickQueryRequest req = new ClickQueryRequest();
-        req.setPage(page);
-        req.setSize(size);
-        if (from != null) req.setFrom(LocalDateTime.parse(from));
-        if (to != null) req.setTo(LocalDateTime.parse(to));
-
-        return ResponseEntity.ok(clickEventService.listClicksOfLink(linkId, req));
-    }
 }

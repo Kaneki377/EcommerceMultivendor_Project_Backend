@@ -10,6 +10,7 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.zosh.domain.PaymentMethod;
 import com.zosh.domain.PaymentOrderStatus;
 import com.zosh.domain.PaymentStatus;
 import com.zosh.exceptions.OrderException;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,6 +45,9 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderService orderService;
     @Value("${stripe.api.key}")
     private String stripeSecretKey;
+
+    @Value("${app.url.base}")
+    private String appBaseUrl;
 
     @Override
     public PaymentOrder createOrder(Customer customer, Set<Order> orders) {
@@ -282,5 +287,81 @@ public class PaymentServiceImpl implements PaymentService {
             // Ném lại lỗi để controller có thể xử lý
             throw new Exception("Failed to execute PayPal payment: " + e.getMessage());
         }
+    }
+
+    @Override
+    public PaymentLinkResponse initStripePaymentAndPersist(Long paymentOrderId, Customer customer) throws Exception {
+        PaymentOrder po = getPaymentOrderById(paymentOrderId);
+        if (po == null) throw new IllegalArgumentException("PaymentOrder not found");
+
+        // 1) Tạo session
+        com.stripe.model.checkout.Session session = createStripeCheckoutSession(po, customer);
+
+        // 2) Gắn dữ liệu nền như đã nói
+        Long amountMinor = session.getAmountTotal();
+        po.setAmount(amountMinor != null ? amountMinor : 0L);
+        po.setPaymentMethod(PaymentMethod.STRIPE);
+        po.setPaymentLinkId(session.getId());
+        po.setCustomer(customer);
+        po.setStatus(PaymentOrderStatus.PENDING);
+
+        paymentOrderRepository.save(po);
+
+        // 3) Trả về link
+        return new PaymentLinkResponse(session.getUrl(), session.getId());
+    }
+
+    @Override
+    public Session createStripeCheckoutSession(PaymentOrder po, Customer customer) throws StripeException {
+        // 1) Tính tổng tiền (giả định Order.totalSellingPrice là USD "major units")
+        long amountMajor = po.getOrders()
+                .stream()
+                .mapToLong(Order::getTotalSellingPrice)
+                .sum();
+        long amountMinor = amountMajor * 100L; // Stripe nhận minor units
+
+        // 2) Gom tên đơn để hiển thị trên Checkout
+        String ordersLabel = po.getOrders().stream()
+                .map(o -> "#" + o.getId())
+                .collect(Collectors.joining(", "));
+
+        // 3) Tạo line item đơn giản 1 dòng cho cả PaymentOrder
+        SessionCreateParams.LineItem lineItem =
+                SessionCreateParams.LineItem.builder()
+                        .setQuantity(1L)
+                        .setPriceData(
+                                SessionCreateParams.LineItem.PriceData.builder()
+                                        .setCurrency("usd") // Đổi nếu bạn dùng tiền tệ khác
+                                        .setUnitAmount(amountMinor)
+                                        .setProductData(
+                                                SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                        .setName("Payment for order(s) " + ordersLabel)
+                                                        .build()
+                                        )
+                                        .build()
+                        )
+                        .build();
+
+        // 4) Success/Cancel URL
+        // - success: dùng placeholder {CHECKOUT_SESSION_ID} để lấy lại sessionId
+        // - cancel: quay về trang giỏ hàng/checkout của bạn
+        String successUrl = appBaseUrl + "/payment/success?session_id={CHECKOUT_SESSION_ID}";
+        String cancelUrl  = appBaseUrl + "/payment/cancel";
+
+        // 5) Build params
+        SessionCreateParams params = SessionCreateParams.builder()
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl(successUrl)
+                .setCancelUrl(cancelUrl)
+                // Nếu bạn có email của customer:
+                .setCustomerEmail(customer.getAccount().getEmail())
+                // Thêm metadata để đối soát khi webhook/verify
+                .putMetadata("paymentOrderId", po.getId().toString())
+                .putMetadata("customerId", customer.getId().toString())
+                .addLineItem(lineItem)
+                .build();
+
+        // 6) Tạo session
+        return Session.create(params);
     }
 }

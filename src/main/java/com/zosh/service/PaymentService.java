@@ -33,4 +33,8 @@ public interface PaymentService {
     Payment executePaypalPayment(String paymentId, String payerId) throws PayPalRESTException;
 
     void executeAndCompletePaypalOrder(Customer customer, String paymentId, String payerId, Long paymentOrderId) throws Exception;
+
+    PaymentLinkResponse initStripePaymentAndPersist(Long paymentOrderId, Customer customer) throws Exception;
+
+    public Session createStripeCheckoutSession(PaymentOrder po, Customer customer) throws StripeException;
 }

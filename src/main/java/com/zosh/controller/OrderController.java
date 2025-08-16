@@ -95,8 +95,13 @@ public class OrderController {
     String jwt) throws OrderException, CustomerException{
 
         Customer customer = customerService.findCustomerProfileByJwt(jwt);
-        Order orders=orderService.findOrderById(orderId);
-        return new ResponseEntity<>(orders,HttpStatus.ACCEPTED);
+        Order order=orderService.findOrderById(orderId);
+
+        if (!order.getCustomer().getId().equals(customer.getId())) {
+            throw new OrderException("You don't have access to this order");
+        }
+
+        return new ResponseEntity<>(order,HttpStatus.ACCEPTED);
     }
 
     @GetMapping("/item/{orderItemId}")

@@ -60,6 +60,20 @@ public class SellerCampaignController {
         AffiliateCampaign updated = affiliateCampaignService.partialUpdate(id, seller.getId(), updates);
         return ResponseEntity.ok(updated);
     }
+
+    @PatchMapping("/campaigns/{id}/active")
+    @PreAuthorize("hasRole('SELLER')")
+    public ResponseEntity<AffiliateCampaign> toggleActive(
+            @PathVariable Long id,
+            @RequestParam boolean active,
+            @RequestHeader("Authorization") String jwt
+    ) throws Exception {
+        Seller seller = sellerService.getSellerProfile(jwt);
+        Map<String, Object> updates = Map.of("active", active);
+        AffiliateCampaign updated = affiliateCampaignService.partialUpdate(id, seller.getId(), updates);
+        return ResponseEntity.ok(updated);
+    }
+
     //Seller xóa chiến dịch
     @DeleteMapping("/campaigns/{id}")
     @PreAuthorize("hasRole('SELLER')")

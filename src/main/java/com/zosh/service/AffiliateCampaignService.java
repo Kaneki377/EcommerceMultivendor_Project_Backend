@@ -12,4 +12,5 @@ public interface AffiliateCampaignService {
     List<AffiliateCampaign> getCampaignsBySeller(String jwt) throws SellerException;
     AffiliateCampaign partialUpdate(Long campaignId, Long sellerId, Map<String, Object> updates) throws Exception;
     void deleteCampaign(Long campaignId, Long sellerId) throws Exception;
+    boolean isActive(AffiliateCampaign campaign);
 }

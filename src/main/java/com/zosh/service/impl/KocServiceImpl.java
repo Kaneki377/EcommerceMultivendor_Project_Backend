@@ -55,7 +55,7 @@ public class KocServiceImpl implements KocService {
         // Tạo KOC
         Koc koc = new Koc();
         koc.setCustomer(customer);
-        koc.setKocId("KOC" + UUID.randomUUID().toString().substring(0, 8));
+        koc.setKocCode("KOC" + UUID.randomUUID().toString().substring(0, 8));
         koc.setFacebookLink(request.getFacebookLink());
         koc.setInstagramLink(request.getInstagramLink());
         koc.setTiktokLink(request.getTiktokLink());
@@ -89,7 +89,7 @@ public class KocServiceImpl implements KocService {
                 k.getId(),
                 k.getCustomer().getFullName(),
                 k.getAccountStatus(),
-                k.getKocId(),
+                k.getKocCode(),
                 k.getCustomer().getId(),
                 k.getCustomer().getAccount() != null
                         ? k.getCustomer().getAccount().getEmail()

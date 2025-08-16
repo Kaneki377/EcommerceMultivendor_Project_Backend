@@ -74,7 +74,7 @@ public class AffiliateRegistrationServiceImpl implements AffiliateRegistrationSe
                 registration.getId(),
                 registration.getCampaign().getCampaignCode(),
                 registration.getCampaign().getName(),
-                registration.getKoc().getKocId(),
+                registration.getKoc().getKocCode(),
                 registration.getStatus()
         );
     }
@@ -103,7 +103,7 @@ public class AffiliateRegistrationServiceImpl implements AffiliateRegistrationSe
                 registration.getId(),
                 registration.getCampaign().getCampaignCode(),
                 registration.getCampaign().getName(),
-                registration.getKoc().getKocId(),
+                registration.getKoc().getKocCode(),
                 registration.getStatus()
         );
     }

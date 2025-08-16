@@ -1,5 +1,7 @@
 package com.zosh.controller;
 
+import com.stripe.exception.StripeException;
+import com.stripe.model.checkout.Session;
 import com.zosh.domain.PaymentMethod;
 import com.zosh.domain.PaymentOrderStatus;
 import com.zosh.domain.PaymentStatus;
@@ -35,21 +37,25 @@ public class PaymentController {
     private final PaymentOrderRepository paymentOrderRepository;
     private final OrderRepository orderRepository;
     private final CartRepository cartRepository;
+    private final CommissionService commissionService;
 
 
-    @PostMapping("{paymentMethod}/order/{orderId}")
+    @PostMapping("{paymentMethod}/order/{paymentOrderId}")
     public ResponseEntity<PaymentLinkResponse> paymentHandler(
             @PathVariable PaymentMethod paymentMethod,
-            @PathVariable Long orderId,
+            @PathVariable("paymentOrderId") Long paymentOrderId,
             @RequestHeader("Authorization") String jwt) throws Exception {
 
         Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
-        PaymentLinkResponse paymentResponse;
+        if (paymentMethod != PaymentMethod.STRIPE) {
+            return ResponseEntity.badRequest().build();
+        }
 
-        PaymentOrder order= paymentService.getPaymentOrderById(orderId);
+        PaymentLinkResponse resp = paymentService
+                .initStripePaymentAndPersist(paymentOrderId, customer);
 
-        return new ResponseEntity<>(null, HttpStatus.CREATED);
+        return new ResponseEntity<>(resp, HttpStatus.CREATED);
     }
 
 
@@ -67,6 +73,35 @@ public class PaymentController {
         }
 
         PaymentOrder paymentOrder = paymentService.getPaymentOrderByPaymentId(sessionId);
+        if (paymentOrder == null) {
+            return ResponseEntity.status(404).body("PaymentOrder not found for sessionId");
+        }
+
+
+        try {
+            Session session = Session.retrieve(sessionId);
+
+            if (paymentOrder.getPaymentLinkId() == null) {
+                paymentOrder.setPaymentLinkId(session.getId());
+            }
+            if (paymentOrder.getAmount() == null || paymentOrder.getAmount() <= 0) {
+                Long amountMinor = session.getAmountTotal() != null ? session.getAmountTotal() : 0L;
+                paymentOrder.setAmount(amountMinor);
+            }
+            if (paymentOrder.getPaymentMethod() == null) {
+                paymentOrder.setPaymentMethod(PaymentMethod.STRIPE);
+            }
+            if (paymentOrder.getCustomer() == null) {
+                paymentOrder.setCustomer(customer);
+            }
+            paymentOrder.setStatus(PaymentOrderStatus.PENDING); // để chắc chắn trạng thái hợp lệ trước khi finalize
+            paymentOrderRepository.save(paymentOrder);
+        } catch (StripeException e) {
+            return ResponseEntity.status(500).body("Stripe retrieve session failed: " + e.getMessage());
+        }
+
+        commissionService.snapshotForPaymentOrder(paymentOrder);
+
         for (Order order : paymentOrder.getOrders()) {
             transactionService.createTransaction(order);
 

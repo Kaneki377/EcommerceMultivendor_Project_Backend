@@ -23,8 +23,10 @@ public class PaymentOrder {
 
     private Long amount;
 
+    @Enumerated(EnumType.STRING)
     private PaymentOrderStatus status = PaymentOrderStatus.PENDING;
 
+    @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
     private String paymentLinkId;

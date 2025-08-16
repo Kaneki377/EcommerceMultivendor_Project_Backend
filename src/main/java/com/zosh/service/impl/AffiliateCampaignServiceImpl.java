@@ -109,8 +109,28 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
         if (updates.containsKey("commissionPercent")) {
             campaign.setCommissionPercent(Double.parseDouble(updates.get("commissionPercent").toString()));
         }
+        if (updates.containsKey("active")) {
+            Object val = updates.get("active");
+            // chấp nhận true/false kiểu boolean hoặc string
+            boolean active = (val instanceof Boolean)
+                    ? (Boolean) val
+                    : Boolean.parseBoolean(String.valueOf(val));
+            campaign.setActive(active);
+        }
         if (updates.containsKey("expiredAt")) {
+            // cho phép truyền ISO-8601, ví dụ "2025-12-31T23:59:59"
             campaign.setExpiredAt(LocalDateTime.parse((String) updates.get("expiredAt")));
+        }
+
+        // Nếu đang bật active mà đã quá hạn thì tự tắt, tránh "active ảo"
+        if (Boolean.TRUE.equals(campaign.getActive())) {
+            LocalDateTime now = LocalDateTime.now();
+            if (campaign.getExpiredAt() != null && !now.isBefore(campaign.getExpiredAt())) {
+                // hết hạn nếu now >= expiredAt
+                campaign.setActive(false);
+                // (tuỳ chọn) ném lỗi rõ ràng thay vì auto-off:
+                // throw new IllegalStateException("Cannot set active because campaign is expired");
+            }
         }
 
         return affiliateCampaignRepository.save(campaign);
@@ -129,5 +149,25 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
         productRepository.detachCampaignFromProducts(campaignId);
 
         affiliateCampaignRepository.delete(campaign);
+    }
+
+    @Override
+    public boolean isActive(AffiliateCampaign campaign) {
+        if (campaign == null) return false;
+
+        // active flag phải true
+        if (Boolean.FALSE.equals(campaign.getActive())) return false;
+
+        // chưa hết hạn (expiredAt có thể null = không đặt hạn)
+        var now = LocalDateTime.now();
+        if (campaign.getExpiredAt() != null && now.isAfter(campaign.getExpiredAt())) {
+            return false;
+        }
+
+        // (tuỳ chọn) có sản phẩm khả dụng?
+        // List<Product> ps = productRepository.findByAffiliateCampaignId(campaign.getId());
+        // if (ps.isEmpty()) return false;
+
+        return true;
     }
 }

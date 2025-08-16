@@ -1,9 +1,6 @@
 package com.zosh.service.impl;
 
-import com.zosh.model.Cart;
-import com.zosh.model.CartItem;
-import com.zosh.model.Customer;
-import com.zosh.model.Product;
+import com.zosh.model.*;
 import com.zosh.repository.CartItemRepository;
 import com.zosh.repository.CartRepository;
 import com.zosh.service.CartService;
@@ -17,7 +14,51 @@ public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
 
     private final CartItemRepository cartItemRepository;
-    private final int shippingFee = 30000;
+
+    @Override
+    public CartItem addCartItem(Customer customer, Product product, String size, int quantity, AffiliateLink affiliateLink) {
+
+        Cart cart = findCustomerCart(customer);
+
+        CartItem isPresent = (affiliateLink == null)
+                ? cartItemRepository.findByCartAndProductAndSize(cart, product, size)
+                : cartItemRepository.findByCartAndProductAndSizeAndAffiliateLink(cart, product, size, affiliateLink);
+
+        if(isPresent == null) {
+            CartItem cartItem = new CartItem();
+            cartItem.setProduct(product);
+            cartItem.setSize(size);
+            cartItem.setQuantity(quantity);
+            cartItem.setCustomerId(customer.getId());
+            cartItem.setAffiliateLink(affiliateLink);
+
+            int totalPrice = quantity * product.getSellingPrice();
+            cartItem.setSellingPrice(totalPrice);
+            cartItem.setMrpPrice(quantity * product.getMrpPrice());
+
+            cart.getCartItems().add(cartItem);
+            cartItem.setCart(cart);
+
+            CartItem saved = cartItemRepository.save(cartItem);
+
+            // (tuỳ) cập nhật lại totals của cart nếu bạn muốn tính tức thời
+            findCustomerCart(customer);
+
+            return saved;
+        }else{
+            int newQty = isPresent.getQuantity() + quantity;
+            isPresent.setQuantity(newQty);
+            isPresent.setSellingPrice(newQty * product.getSellingPrice());
+            isPresent.setMrpPrice(newQty * product.getMrpPrice());
+            CartItem saved = cartItemRepository.save(isPresent);
+
+            // (tuỳ) cập nhật lại totals
+            findCustomerCart(customer);
+
+            return saved;
+        }
+    }
+
     @Override
     public CartItem addCartItem(Customer customer, Product product, String size, int quantity) {
 
@@ -39,10 +80,15 @@ public class CartServiceImpl implements CartService {
             cart.getCartItems().add(cartItem);
             cartItem.setCart(cart);
 
-            return cartItemRepository.save(cartItem);
-        }
 
-        return isPresent;
+            return cartItemRepository.save(cartItem);
+        }else{
+            int newQty = isPresent.getQuantity() + quantity;
+            isPresent.setQuantity(newQty);
+            isPresent.setSellingPrice(newQty * product.getSellingPrice());
+            isPresent.setMrpPrice(newQty * product.getMrpPrice());
+            return cartItemRepository.save(isPresent);
+        }
     }
 
     @Override

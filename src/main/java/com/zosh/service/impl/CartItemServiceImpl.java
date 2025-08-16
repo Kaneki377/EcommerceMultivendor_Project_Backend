@@ -26,9 +26,11 @@ public class CartItemServiceImpl implements CartItemService {
         Customer cartItemCustomer = item.getCart().getCustomer();
 
         if(cartItemCustomer.getId().equals(customerId)) {
-            item.setQuantity(cartItem.getQuantity());
-            item.setMrpPrice(item.getQuantity() *  item.getProduct().getMrpPrice());
-            item.setSellingPrice(item.getQuantity() *  item.getProduct().getSellingPrice());
+            int newQty = cartItem.getQuantity();
+            item.setQuantity(newQty);
+            item.setMrpPrice(newQty * item.getProduct().getMrpPrice());
+            item.setSellingPrice(newQty * item.getProduct().getSellingPrice());
+
             return cartItemRepository.save(item);
         }else {
             throw new CartItemException("You can't update this cart item");

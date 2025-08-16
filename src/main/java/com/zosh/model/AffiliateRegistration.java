@@ -6,7 +6,15 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "affiliate_registration")
+@Table(name = "affiliate_registration",
+        uniqueConstraints = @UniqueConstraint(
+                name="uk_affreg_koc_campaign",
+                columnNames = {"koc_id","campaign_id"}
+        ),
+        indexes = {
+                @Index(name="idx_affreg_koc", columnList="koc_id"),
+                @Index(name="idx_affreg_campaign", columnList="campaign_id")
+        })
 @Getter
 @Setter
 @NoArgsConstructor

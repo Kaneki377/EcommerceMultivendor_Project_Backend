@@ -52,9 +52,8 @@ public class OrderServiceImpl implements OrderService {
             Long sellerId = entry.getKey();
             List<CartItem> items = entry.getValue();
 
-            int totalOrderPrice = items.stream().mapToInt(
-                    CartItem::getSellingPrice
-            ).sum();
+            int totalSelling = items.stream().mapToInt(CartItem::getSellingPrice).sum();
+            int totalMrp     = items.stream().mapToInt(CartItem::getMrpPrice).sum();
 
             int totalItem = items.stream().mapToInt(
                     CartItem::getQuantity
@@ -63,12 +62,13 @@ public class OrderServiceImpl implements OrderService {
             Order createdOrder = new Order();
             createdOrder.setCustomer(customer);
             createdOrder.setSellerId(sellerId);
-            createdOrder.setTotalMrpPrice(totalOrderPrice);
-            createdOrder.setTotalSellingPrice(totalOrderPrice);
+            createdOrder.setTotalMrpPrice(totalMrp);
+            createdOrder.setTotalSellingPrice(totalSelling);
             createdOrder.setTotalItem(totalItem);
             createdOrder.setShippingAddress(address);
             createdOrder.setOrderStatus(OrderStatus.PENDING);
             createdOrder.getPaymentDetails().setStatus(PaymentStatus.PENDING);
+
 
             Order savedOrder = orderRepository.save(createdOrder);
             orders.add(savedOrder);
@@ -85,6 +85,7 @@ public class OrderServiceImpl implements OrderService {
                 orderItem.setSize(item.getSize());
                 orderItem.setSellingPrice(item.getSellingPrice());
                 orderItem.setCustomerId(item.getCustomerId());
+                orderItem.setAffiliateLink(item.getAffiliateLink());
 
                 savedOrder.getOrderItems().add(orderItem);
 

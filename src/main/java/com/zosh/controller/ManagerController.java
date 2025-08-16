@@ -102,7 +102,7 @@ public class ManagerController {
         dto.setId(koc.getId());
         dto.setName(koc.getCustomer().getFullName());
         dto.setAccountStatus(koc.getAccountStatus());
-        dto.setKocId(koc.getKocId());
+        dto.setKocId(koc.getKocCode());
         dto.setCustomerId(koc.getCustomer() != null ? koc.getCustomer().getId() : null);
         dto.setEmail(
                 (koc.getCustomer() != null && koc.getCustomer().getAccount() != null)

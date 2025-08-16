@@ -16,11 +16,9 @@ public class AffiliateLinkResponse {
     private Long id;
     private Long campaignId;
     private Long productId;
-    private String code;
     private String targetUrl;
     private String generatedUrl;
     private LocalDateTime createdAt;
 
-    // số click tổng (tuỳ chọn)
     private Long totalClicks;
 }
