@@ -1,5 +1,6 @@
 package com.zosh.service.impl;
 
+import com.zosh.domain.PaymentStatus;
 import com.zosh.dto.RevenueChart;
 import com.zosh.model.Order;
 import com.zosh.repository.OrderRepository;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,8 @@ public class RevenueServiceImpl implements RevenueService {
             double dailyRevenue = orderRepository
                     .findBySellerIdAndOrderDateBetween(sellerId,date.atStartOfDay(), date.plusDays(1).atStartOfDay())
                     .stream()
+                    .filter(o -> o.getPaymentStatus().equals(PaymentStatus.COMPLETED))
+
                     .mapToDouble(Order::getTotalSellingPrice)
                     .sum();
 
@@ -54,6 +58,8 @@ public class RevenueServiceImpl implements RevenueService {
             double monthlyRevenue = orderRepository
                     .findBySellerIdAndOrderDateBetween(sellerId,startOfMonth.atStartOfDay(), startOfNextMonth.atStartOfDay())
                     .stream()
+                    .filter(o -> o.getPaymentStatus() == PaymentStatus.COMPLETED)
+
                     .mapToDouble(Order::getTotalSellingPrice)
                     .sum();
 
@@ -79,6 +85,8 @@ public class RevenueServiceImpl implements RevenueService {
             double yearlyRevenue = orderRepository
                     .findBySellerIdAndOrderDateBetween(sellerId,startOfYear.atStartOfDay(), startOfNextYear.atStartOfDay())
                     .stream()
+                    .filter(o -> o.getPaymentStatus() == PaymentStatus.COMPLETED)
+
                     .mapToDouble(Order::getTotalSellingPrice)
                     .sum();
 
@@ -110,6 +118,8 @@ public class RevenueServiceImpl implements RevenueService {
             double hourlyRevenue = orderRepository
                     .findBySellerIdAndOrderDateBetween(sellerId, startOfHour, startOfNextHour)
                     .stream()
+                    .filter(o -> o.getPaymentStatus() == PaymentStatus.COMPLETED)
+
                     .mapToDouble(Order::getTotalSellingPrice)
                     .sum();
 
@@ -127,7 +137,9 @@ public class RevenueServiceImpl implements RevenueService {
 
     @Override
     public List<RevenueChart> getRevenueChartByType(String type,Long sellerId) {
-        if(type.equals("monthly")){
+        if(type.equals("monthly_1")){
+            return this.getMonthlyRevenueForChart(1,sellerId);
+        }else  if(type.equals("monthly_12")){
             return this.getMonthlyRevenueForChart(12,sellerId);
         }
         else if(type.equals("daily")){

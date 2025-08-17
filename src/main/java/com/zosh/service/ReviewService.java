@@ -13,7 +13,7 @@ public interface ReviewService {
 
     Review createReview(CreateReviewRequest request,
                         Customer customer,
-                        Product product);
+                        Product product) throws ReviewNotFoundException;
 
     List<Review> getReviewByProductId(Long productId);
 

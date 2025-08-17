@@ -13,6 +13,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findBySellerId(long sellerId);
 
     List<Order> findBySellerIdOrderByOrderDateDesc(Long sellerId);
-
+    List<Order> findByCustomerIdOrderByOrderDateDesc(Long customerId);
     List<Order> findBySellerIdAndOrderDateBetween(Long sellerId, LocalDateTime startDate, LocalDateTime endDate);
 }

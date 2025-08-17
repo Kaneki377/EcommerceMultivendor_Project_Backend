@@ -121,6 +121,7 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
             // cho phép truyền ISO-8601, ví dụ "2025-12-31T23:59:59"
             campaign.setExpiredAt(LocalDateTime.parse((String) updates.get("expiredAt")));
         }
+<<<<<<< Updated upstream
 
         // Nếu đang bật active mà đã quá hạn thì tự tắt, tránh "active ảo"
         if (Boolean.TRUE.equals(campaign.getActive())) {
@@ -133,6 +134,11 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
             }
         }
 
+=======
+        if (updates.containsKey("active")) {
+            campaign.setActive(Boolean.parseBoolean(updates.get("active").toString()));
+        }
+>>>>>>> Stashed changes
         return affiliateCampaignRepository.save(campaign);
     }
 

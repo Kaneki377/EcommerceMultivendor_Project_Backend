@@ -19,11 +19,13 @@ import com.zosh.model.Order;
 import com.zosh.repository.CartRepository;
 import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
+import com.zosh.repository.ProductRepository;
 import com.zosh.response.PaymentLinkResponse;
 import com.zosh.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
@@ -42,7 +44,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final SellerService sellerService;
     private final SellerReportService sellerReportService;
     private final CartRepository cartRepository;
-    private final OrderService orderService;
+    private final ProductRepository productRepository;
     @Value("${stripe.api.key}")
     private String stripeSecretKey;
 
@@ -99,50 +101,22 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         // Trừ kho + set order COMPLETED + clear cart... (tất cả trong @Transactional)
-        orderService.onPaymentSuccess(paymentOrder);
-
+        onPaymentSuccess(paymentOrder);
         paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
         paymentOrderRepository.save(paymentOrder);
 
         return true;
     }
 
-    @Override
-    public Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId, String paymentLinkId) throws StripeException {
-        if (paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)) {
-
-            PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentId); // ID dạng pi_xxx
-
-            String status = paymentIntent.getStatus(); // e.g. "succeeded"
-            Long amountReceived = paymentIntent.getAmountReceived(); // số tiền nhận được
-
-            if ("succeeded".equals(status)) {
-                Set<Order> orders = paymentOrder.getOrders();
-                for (Order order : orders) {
-                    order.setPaymentStatus(PaymentStatus.COMPLETED);
-                    orderRepository.save(order);
-                }
-
-                paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
-                paymentOrderRepository.save(paymentOrder);
-                return true;
-            }
-
-            paymentOrder.setStatus(PaymentOrderStatus.FAILED);
-            paymentOrderRepository.save(paymentOrder);
-            return false;
-        }
-
-        return false;
-    }
 
     @Override
     public PaymentLinkResponse createStripePaymentLink(Customer customer, Long amount, Long orderId) throws StripeException {
         Stripe.apiKey = stripeSecretKey;
-        double exchangeRate = 25000.0;
-
+        double exchangeRate = 27321;
+// Làm tròn VND đến 1,000 gần nhất
+        long roundedVnd = Math.round(amount / 1000.0) * 1000;
         // Chuyển VND -> USD -> cent
-        long amountUsdInCents = Math.round((amount/ exchangeRate) * 100);
+        long amountUsdInCents = Math.round((roundedVnd / exchangeRate) * 100);
         SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -289,6 +263,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
+<<<<<<< Updated upstream
     @Override
     public PaymentLinkResponse initStripePaymentAndPersist(Long paymentOrderId, Customer customer) throws Exception {
         PaymentOrder po = getPaymentOrderById(paymentOrderId);
@@ -363,5 +338,46 @@ public class PaymentServiceImpl implements PaymentService {
 
         // 6) Tạo session
         return Session.create(params);
+=======
+    //complete order for Stripe,COD
+    @Override
+    @Transactional
+    public void completePaymentForOrder(Order order) throws Exception {
+        transactionService.createTransaction(order);
+
+        // Cập nhật seller report
+        Seller seller = sellerService.getSellerById(order.getSellerId());
+        SellerReport report = sellerReportService.getSellerReport(seller);
+
+        report.setTotalOrders(report.getTotalOrders() + 1);
+        report.setTotalEarnings(report.getTotalEarnings() + order.getTotalSellingPrice());
+        report.setTotalSales(report.getTotalSales() + order.getTotalItem());
+
+        sellerReportService.updateSellerReport(report);
+
+        // Cập nhật trạng thái đơn hàng
+        order.setPaymentStatus(PaymentStatus.COMPLETED);
+        orderRepository.save(order);
+    }
+    //trừ kho
+    @Transactional(propagation = Propagation.MANDATORY)
+    @Override
+    public void onPaymentSuccess(PaymentOrder paymentOrder) throws OrderException {
+        for (Order order : paymentOrder.getOrders()) {
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = productRepository.lockById(item.getProduct().getId())
+                        .orElseThrow(() -> new RuntimeException("Product not found"));
+
+                int newQty = product.getQuantity() - item.getQuantity();
+                if (newQty < 0) throw new RuntimeException("Out of stock");
+
+                product.setQuantity(newQty);
+                product.setIn_stock(newQty > 0);
+                productRepository.save(product);
+            }
+            order.setPaymentStatus(PaymentStatus.COMPLETED);
+            orderRepository.save(order);
+        }
+>>>>>>> Stashed changes
     }
 }

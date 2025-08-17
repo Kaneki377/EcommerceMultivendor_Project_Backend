@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -73,6 +75,7 @@ public class PaymentController {
         }
 
         PaymentOrder paymentOrder = paymentService.getPaymentOrderByPaymentId(sessionId);
+<<<<<<< Updated upstream
         if (paymentOrder == null) {
             return ResponseEntity.status(404).body("PaymentOrder not found for sessionId");
         }
@@ -101,19 +104,12 @@ public class PaymentController {
         }
 
         commissionService.snapshotForPaymentOrder(paymentOrder);
+=======
+>>>>>>> Stashed changes
 
         for (Order order : paymentOrder.getOrders()) {
-            transactionService.createTransaction(order);
 
-            Seller seller = sellerService.getSellerById(order.getSellerId());
-            SellerReport report = sellerReportService.getSellerReport(seller);
-            report.setTotalOrders(report.getTotalOrders() + 1);
-            report.setTotalEarnings(report.getTotalEarnings() + order.getTotalSellingPrice());
-            report.setTotalSales(report.getTotalSales() + order.getOrderItems().size());
-            sellerReportService.updateSellerReport(report);
-
-            order.setPaymentStatus(PaymentStatus.COMPLETED);
-            orderRepository.save(order);
+            paymentService.completePaymentForOrder(order);
         }
 
         Cart cart = cartRepository.findByCustomerId(customer.getId());

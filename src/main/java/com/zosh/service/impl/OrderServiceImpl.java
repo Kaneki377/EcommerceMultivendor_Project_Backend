@@ -2,6 +2,7 @@ package com.zosh.service.impl;
 
 import com.zosh.domain.AddressOwnerType;
 import com.zosh.domain.OrderStatus;
+import com.zosh.domain.PaymentMethod;
 import com.zosh.domain.PaymentStatus;
 import com.zosh.exceptions.OrderException;
 import com.zosh.model.*;
@@ -10,6 +11,9 @@ import com.zosh.repository.OrderItemRepository;
 import com.zosh.repository.OrderRepository;
 import com.zosh.repository.ProductRepository;
 import com.zosh.service.OrderService;
+import com.zosh.service.PaymentService;
+import com.zosh.service.SellerReportService;
+import com.zosh.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -23,12 +27,10 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-
     private final AddressRepository addressRepository;
-
     private final OrderItemRepository orderItemRepository;
-
     private final ProductRepository productRepository;
+    private final PaymentService paymentService;
 
     @Override
     public Set<Order> createOrder(Customer customer, Address shippingAddress, Cart cart) {
@@ -67,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
             createdOrder.setTotalItem(totalItem);
             createdOrder.setShippingAddress(address);
             createdOrder.setOrderStatus(OrderStatus.PENDING);
-            createdOrder.getPaymentDetails().setStatus(PaymentStatus.PENDING);
+
 
 
             Order savedOrder = orderRepository.save(createdOrder);
@@ -105,7 +107,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<Order> customerOrderHistory(Long customerId) {
-        return orderRepository.findByCustomerId(customerId);
+        return orderRepository.findByCustomerIdOrderByOrderDateDesc(customerId);
     }
 
     //Get ShopOrder
@@ -115,8 +117,40 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws OrderException {
+    @Transactional
+    public Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws Exception {
         Order order = findOrderById(orderId);
+
+        // Nếu không đổi trạng thái thì thôi cho an toàn
+        if (order.getOrderStatus() == orderStatus) {
+            return order;
+        }
+
+        var now = java.time.LocalDateTime.now();
+
+        // Gắn mốc thời gian tối thiểu cần có
+        switch (orderStatus) {
+            case CONFIRMED: // = Packed
+                if (order.getPackedDate() == null) {
+                    order.setPackedDate(now);
+                }
+                break;
+
+            case DELIVERED:
+                // Nếu muốn giữ deliverDate như ETA cũ thì đổi thành: if (order.getDeliverDate() == null) ...
+                order.setDeliverDate(now);
+                // ✅ Auto-complete COD payment
+                if (order.getPaymentDetails().getPaymentMethod() == PaymentMethod.COD
+                        && order.getPaymentStatus() == PaymentStatus.PENDING) {
+                    paymentService.completePaymentForOrder(order); // nên @Transactional và idempotent
+                }
+                break;
+
+            default:
+                // các trạng thái khác không đụng gì
+                break;
+        }
+
         order.setOrderStatus(orderStatus);
 
         return orderRepository.save(order);
@@ -128,6 +162,9 @@ public class OrderServiceImpl implements OrderService {
 
         if(!customer.getId().equals(order.getCustomer().getId())) {
             throw new OrderException("You don't have access to this order");
+        }
+        if (order.getOrderStatus() == OrderStatus.CANCELLED) {
+            return order;
         }
         order.setOrderStatus(OrderStatus.CANCELLED);
 
@@ -142,23 +179,5 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.deleteById(orderId);
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
-    @Override
-    public void onPaymentSuccess(PaymentOrder paymentOrder) throws OrderException {
-        for (Order order : paymentOrder.getOrders()) {
-            for (OrderItem item : order.getOrderItems()) {
-                Product product = productRepository.lockById(item.getProduct().getId())
-                        .orElseThrow(() -> new RuntimeException("Product not found"));
 
-                int newQty = product.getQuantity() - item.getQuantity();
-                if (newQty < 0) throw new RuntimeException("Out of stock");
-
-                product.setQuantity(newQty);
-                product.setIn_stock(newQty > 0);
-                productRepository.save(product);
-            }
-            order.setPaymentStatus(PaymentStatus.COMPLETED);
-            orderRepository.save(order);
-        }
-    }
 }

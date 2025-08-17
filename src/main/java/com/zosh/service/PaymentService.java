@@ -22,9 +22,6 @@ public interface PaymentService {
 
     Boolean verifyStripePayment(String sessionId) throws StripeException, OrderException;
 
-    Boolean ProceedPaymentOrder(PaymentOrder paymentOrder,
-                                String paymentId,
-                                String paymentLinkId) throws StripeException;
     PaymentLinkResponse createStripePaymentLink(Customer customer,
                                                  Long amount, Long orderId) throws StripeException;
 
@@ -34,7 +31,15 @@ public interface PaymentService {
 
     void executeAndCompletePaypalOrder(Customer customer, String paymentId, String payerId, Long paymentOrderId) throws Exception;
 
+<<<<<<< Updated upstream
     PaymentLinkResponse initStripePaymentAndPersist(Long paymentOrderId, Customer customer) throws Exception;
 
     public Session createStripeCheckoutSession(PaymentOrder po, Customer customer) throws StripeException;
+=======
+    //Complete Order for COD
+    void completePaymentForOrder(Order order) throws Exception;
+
+    //Subtract quantity in stock
+    void onPaymentSuccess(PaymentOrder paymentOrder) throws OrderException;
+>>>>>>> Stashed changes
 }

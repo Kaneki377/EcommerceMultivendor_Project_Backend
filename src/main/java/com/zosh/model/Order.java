@@ -1,6 +1,7 @@
 package com.zosh.model;
 
 import com.zosh.domain.OrderStatus;
+import com.zosh.domain.PaymentMethod;
 import com.zosh.domain.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -43,7 +44,7 @@ public class Order {
 
     private Integer totalSellingPrice;
 
-    private Integer discount;
+//    private Integer discount;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
@@ -51,12 +52,23 @@ public class Order {
     private int totalItem;
 
     @Enumerated(EnumType.STRING)
+//    @Enumerated(EnumType.ORDINAL) // Map enum thành số (ordinal) trong DB
+    @Column(name = "payment_status")
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
     private LocalDateTime orderDate = LocalDateTime.now();
+    private LocalDateTime packedDate;
+    private LocalDateTime deliverDate;
 
-    private LocalDateTime deliverDate = orderDate.plusDays(7);
 
     @Column(name = "net_paid_amount", precision = 18, scale = 2)
     private BigDecimal netPaidAmount; // tổng sau chiết khấu nền tảng + seller + thuế + phí
+
+    @PrePersist
+    public void prePersist() {
+        if (this.orderId == null) {
+            this.orderId = OrderIdGenerator.generateOrderId();
+        }
+    }
+
 }

@@ -13,6 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@Table(
+        uniqueConstraints = @UniqueConstraint(columnNames = {"customer_id","product_id"})
+)
 public class Review {
 
     @Id
@@ -34,7 +37,7 @@ public class Review {
     private Product product;
 
     @ManyToOne
-    @JoinColumn(name = "userId", nullable = false)
+    @JoinColumn(name = "customerId", nullable = false)
     private Customer customer;
 
     @Column(nullable = false)

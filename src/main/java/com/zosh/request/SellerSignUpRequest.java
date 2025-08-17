@@ -12,7 +12,7 @@ public class SellerSignUpRequest {
     @Valid
     private SignUpRequest account;
 
-    @NotBlank(message = "sellerName")
+
     private String sellerName;
 
     @Valid

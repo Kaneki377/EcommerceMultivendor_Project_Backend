@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,8 +35,8 @@ public class ManagerCouponController {
             @RequestParam String code,
             @RequestParam double orderValue,
             @RequestHeader("Authorization") String jwt
-    ) {
-        try {
+    )throws Exception {
+
             Customer customer = customerService.findCustomerProfileByJwt(jwt);
             Cart cart;
 
@@ -47,25 +48,7 @@ public class ManagerCouponController {
 
             return ResponseEntity.ok(cart);
 
-        } catch (IllegalArgumentException ex) {
-            // Trả về mã lỗi 400 và thông báo rõ ràng
-            return ResponseEntity
-                    .badRequest()
-                    .body(Map.of(
-                            "error", ex.getMessage(),
-                            "timestamp", LocalDateTime.now().toString(),
-                            "details", "uri=/api/coupons/apply"
-                    ));
-        } catch (Exception ex) {
-            // Lỗi khác
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "error", "Internal server error",
-                            "timestamp", LocalDateTime.now().toString(),
-                            "details", "uri=/api/coupons/apply"
-                    ));
-        }
+
     }
 
 
@@ -76,6 +59,9 @@ public class ManagerCouponController {
     public ResponseEntity<Coupon> createCoupon(@RequestBody Coupon coupon) {
 
         Coupon createdCoupon = couponService.createCoupon(coupon);
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Coupon created successfully");
+        response.put("data", createdCoupon);
         return ResponseEntity.ok(createdCoupon);
     }
 
@@ -87,7 +73,7 @@ public class ManagerCouponController {
     }
 
     @GetMapping("/admin/all")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER','KOC','CUSTOMER')")
     public ResponseEntity<List<Coupon>> getAllCoupons() {
         List<Coupon> coupons = couponService.findAllCoupons();
         return ResponseEntity.ok(coupons);

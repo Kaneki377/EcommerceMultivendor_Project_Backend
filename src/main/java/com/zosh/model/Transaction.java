@@ -1,5 +1,6 @@
 package com.zosh.model;
 
+import com.zosh.domain.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,4 +28,7 @@ public class Transaction {
     private Seller seller;
 
     private LocalDateTime date = LocalDateTime.now();
+
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod; // COD, STRIPE, PAYPAL...
 }

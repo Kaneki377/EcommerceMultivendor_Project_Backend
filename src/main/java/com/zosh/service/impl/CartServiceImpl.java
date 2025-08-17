@@ -107,6 +107,8 @@ public class CartServiceImpl implements CartService {
         }
 
         cart.setTotalMrpPrice(totalPrice);
+        cart.setCouponCode(cart.getCouponCode());
+        cart.setCouponPrice(cart.getCouponPrice());
         cart.setTotalItem(cart.getCartItems().size());
         cart.setTotalSellingPrice(totalDiscountedPrice-cart.getCouponPrice());
         cart.setDiscount(calculateDiscountPercentage(totalPrice, totalDiscountedPrice));

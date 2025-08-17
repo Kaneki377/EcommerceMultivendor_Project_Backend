@@ -26,9 +26,12 @@ public class PaymentOrder {
     @Enumerated(EnumType.STRING)
     private PaymentOrderStatus status = PaymentOrderStatus.PENDING;
 
+<<<<<<< Updated upstream
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
+=======
+>>>>>>> Stashed changes
     private String paymentLinkId;
 
     @ManyToOne
