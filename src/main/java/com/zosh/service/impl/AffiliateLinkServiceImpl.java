@@ -33,7 +33,7 @@ public class AffiliateLinkServiceImpl implements AffiliateLinkService {
 
 
     private static final char[] BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
-    private static final SecureRandom RNG = new java.security.SecureRandom();
+    private static final SecureRandom RNG = new SecureRandom();
 
     @Override
     @Transactional
@@ -44,7 +44,7 @@ public class AffiliateLinkServiceImpl implements AffiliateLinkService {
         AffiliateCampaign campaign = campaignRepository.findById(campaignId)
                 .orElseThrow(() -> new RuntimeException("Campaign not found"));
 
-        // Campaign phải đang/được phép hoạt động để tạo link
+        // Chỉ được tạo link của các campaign đang hoạt động
         if (!affiliateCampaignService.isActive(campaign)) {
             throw new RuntimeException("Campaign is not active");
         }
@@ -60,7 +60,7 @@ public class AffiliateLinkServiceImpl implements AffiliateLinkService {
 
             if (product.getAffiliateCampaign() == null ||
                     !product.getAffiliateCampaign().getId().equals(campaignId)) {
-                throw new RuntimeException("Product is not in this campaign");
+                throw new RuntimeException("Product '" + product.getTitle() + "' does not belong to this campaign.");
             }
             // không tạo trùng link theo bộ (koc, campaign, product)
             affiliateLinkRepository.findByKoc_IdAndCampaign_IdAndProduct_Id(kocId, campaignId, productId)
@@ -71,7 +71,7 @@ public class AffiliateLinkServiceImpl implements AffiliateLinkService {
                     .ifPresent(x -> { throw new RuntimeException("Campaign-wide link already exists for this KOC"); });
         }
 
-        // Build targetUrl theo yêu cầu
+        // Xử lý target Link
         String resolvedTarget = resolveTargetUrl(targetUrl, campaign, product, koc);
 
         // Tạo link
@@ -83,9 +83,8 @@ public class AffiliateLinkServiceImpl implements AffiliateLinkService {
         link.setCreatedAt(LocalDateTime.now());
         link.setTotalClick(0);
 
-        // shortToken (ULID/Random Base62)
+        // shortToken để truy xuất nhanh
         String token = generateShortToken();
-        // đảm bảo duy nhất
         while (affiliateLinkRepository.findByShortToken(token).isPresent()) {
             token = generateShortToken();
         }
@@ -93,7 +92,6 @@ public class AffiliateLinkServiceImpl implements AffiliateLinkService {
 
         // generatedUrl dùng shortToken
         link.setGeneratedUrl("/r/" + token);
-
         link = affiliateLinkRepository.save(link);
 
         return AffiliateLinkResponse.builder()

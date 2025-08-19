@@ -75,7 +75,7 @@ public class PaymentController {
         }
 
         PaymentOrder paymentOrder = paymentService.getPaymentOrderByPaymentId(sessionId);
-<<<<<<< Updated upstream
+
         if (paymentOrder == null) {
             return ResponseEntity.status(404).body("PaymentOrder not found for sessionId");
         }
@@ -104,8 +104,6 @@ public class PaymentController {
         }
 
         commissionService.snapshotForPaymentOrder(paymentOrder);
-=======
->>>>>>> Stashed changes
 
         for (Order order : paymentOrder.getOrders()) {
 

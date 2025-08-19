@@ -3,21 +3,28 @@ package com.zosh.controller;
 import com.zosh.config.JwtProvider;
 import com.zosh.dto.AffiliateRegistrationResponse;
 import com.zosh.dto.CommissionDTO;
+
 import com.zosh.exceptions.KocException;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.AffiliateRegistration;
 import com.zosh.model.Koc;
+import com.zosh.model.Product;
 import com.zosh.repository.KocRepository;
 import com.zosh.repository.OrderItemRepository;
 import com.zosh.repository.PayoutItemRepository;
+import com.zosh.repository.ProductRepository;
 import com.zosh.request.CreateAffiliateLinkRequest;
 import com.zosh.request.CreateKocRequest;
 import com.zosh.response.AffiliateLinkResponse;
+import com.zosh.service.AffiliateCampaignService;
 import com.zosh.service.AffiliateLinkService;
 import com.zosh.service.AffiliateRegistrationService;
 import com.zosh.service.KocService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,6 +44,8 @@ public class KocController {
     private final AffiliateRegistrationService registrationService;
     private final OrderItemRepository orderItemRepository;
     private final PayoutItemRepository payoutItemRepository;
+    private final AffiliateCampaignService affiliateCampaignService;
+    private final ProductRepository productRepository;
 
     @PostMapping("/create")
     public ResponseEntity<?> createKoc(@Valid @RequestBody CreateKocRequest request) {
@@ -90,6 +99,10 @@ public class KocController {
             @RequestBody @Valid CreateAffiliateLinkRequest req,
             @RequestHeader("Authorization") String jwt) {
 
+        System.out.println("[DEBUG] /affiliate-links payload = campaignId=" + req.getCampaignId()
+                + ", productId=" + req.getProductId()
+                + ", targetUrl=" + req.getTargetUrl());
+
         Long kocId = currentKocId(jwt);
         var res = affiliateLinkService.createAffiliateLink(
                 kocId,
@@ -134,4 +147,45 @@ public class KocController {
         return ResponseEntity.ok(items);
     }
 
+    // 3.1) KOC xem các campaign Active & CHƯA đăng ký
+    @GetMapping("/campaigns/active")
+    @PreAuthorize("hasRole('KOC')")
+    public ResponseEntity<?> browseActiveNotRegistered(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return ResponseEntity.ok(affiliateCampaignService.listActiveForKocNotRegistered(jwt, pageable));
+    }
+
+    // 3.2) (tuỳ chọn) KOC xem campaign Active + trạng thái của mình (null nếu chưa đăng ký)
+    @GetMapping("/campaigns/active-with-status")
+    @PreAuthorize("hasRole('KOC')")
+    public ResponseEntity<?> browseActiveWithMyStatus(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size
+    ) {
+        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return ResponseEntity.ok(affiliateCampaignService.listActiveWithMyStatus(jwt, pageable));
+    }
+
+    @GetMapping("campaigns/{id}/products")
+    @PreAuthorize("hasRole('KOC')")
+    public ResponseEntity<Page<ProductCardDTO>> productsOfCampaign(
+            @PathVariable Long id,
+            @RequestParam(defaultValue="0") int page,
+            @RequestParam(defaultValue="20") int size) {
+        var pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        var data = productRepository.findInStockByCampaign(id, pageable)
+                .map(ProductCardDTO::from);
+        return ResponseEntity.ok(data);
+    }
+
+    record ProductCardDTO(Long id, String name, Long price, String thumbnailUrl, Integer stock)  {
+        static ProductCardDTO from(Product p) {
+            return new ProductCardDTO(p.getId(), p.getTitle(), (long) p.getSellingPrice(), p.getImages().get(0), p.getQuantity());
+        }
+    }
 }

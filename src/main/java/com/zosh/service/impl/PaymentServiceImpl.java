@@ -263,7 +263,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
     }
 
-<<<<<<< Updated upstream
+
     @Override
     public PaymentLinkResponse initStripePaymentAndPersist(Long paymentOrderId, Customer customer) throws Exception {
         PaymentOrder po = getPaymentOrderById(paymentOrderId);
@@ -321,7 +321,7 @@ public class PaymentServiceImpl implements PaymentService {
         // - success: dùng placeholder {CHECKOUT_SESSION_ID} để lấy lại sessionId
         // - cancel: quay về trang giỏ hàng/checkout của bạn
         String successUrl = appBaseUrl + "/payment/success?session_id={CHECKOUT_SESSION_ID}";
-        String cancelUrl  = appBaseUrl + "/payment/cancel";
+        String cancelUrl = appBaseUrl + "/payment/cancel";
 
         // 5) Build params
         SessionCreateParams params = SessionCreateParams.builder()
@@ -338,7 +338,8 @@ public class PaymentServiceImpl implements PaymentService {
 
         // 6) Tạo session
         return Session.create(params);
-=======
+    }
+
     //complete order for Stripe,COD
     @Override
     @Transactional
@@ -363,21 +364,20 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public void onPaymentSuccess(PaymentOrder paymentOrder) throws OrderException {
-        for (Order order : paymentOrder.getOrders()) {
-            for (OrderItem item : order.getOrderItems()) {
-                Product product = productRepository.lockById(item.getProduct().getId())
-                        .orElseThrow(() -> new RuntimeException("Product not found"));
+            for (Order order : paymentOrder.getOrders()) {
+                for (OrderItem item : order.getOrderItems()) {
+                    Product product = productRepository.lockById(item.getProduct().getId())
+                            .orElseThrow(() -> new RuntimeException("Product not found"));
 
-                int newQty = product.getQuantity() - item.getQuantity();
-                if (newQty < 0) throw new RuntimeException("Out of stock");
+                    int newQty = product.getQuantity() - item.getQuantity();
+                    if (newQty < 0) throw new RuntimeException("Out of stock");
 
-                product.setQuantity(newQty);
-                product.setIn_stock(newQty > 0);
-                productRepository.save(product);
+                    product.setQuantity(newQty);
+                    product.setIn_stock(newQty > 0);
+                    productRepository.save(product);
+                }
+                order.setPaymentStatus(PaymentStatus.COMPLETED);
+                orderRepository.save(order);
             }
-            order.setPaymentStatus(PaymentStatus.COMPLETED);
-            orderRepository.save(order);
         }
->>>>>>> Stashed changes
-    }
 }

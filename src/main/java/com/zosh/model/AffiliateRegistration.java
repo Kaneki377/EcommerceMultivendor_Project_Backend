@@ -6,7 +6,6 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-<<<<<<< Updated upstream
 @Table(name = "affiliate_registration",
         uniqueConstraints = @UniqueConstraint(
                 name="uk_affreg_koc_campaign",
@@ -16,17 +15,10 @@ import java.time.LocalDateTime;
                 @Index(name="idx_affreg_koc", columnList="koc_id"),
                 @Index(name="idx_affreg_campaign", columnList="campaign_id")
         })
-=======
-
->>>>>>> Stashed changes
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "affiliate_registration",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"campaign_id", "koc_id"})
-)
 public class AffiliateRegistration {
 
     @Id

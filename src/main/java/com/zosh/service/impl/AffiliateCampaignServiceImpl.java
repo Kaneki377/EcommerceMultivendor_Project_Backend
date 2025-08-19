@@ -1,18 +1,22 @@
 package com.zosh.service.impl;
 
 import com.zosh.config.JwtProvider;
+import com.zosh.dto.CampaignDTO;
 import com.zosh.exceptions.ProductException;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.AffiliateCampaign;
 import com.zosh.model.Product;
 import com.zosh.model.Seller;
 import com.zosh.repository.AffiliateCampaignRepository;
+import com.zosh.repository.KocRepository;
 import com.zosh.repository.ProductRepository;
 import com.zosh.repository.SellerRepository;
 import com.zosh.request.CreateAffiliateCampaignRequest;
 import com.zosh.service.AffiliateCampaignService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,6 +33,7 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
     private final SellerRepository sellerRepository;
     private final ProductRepository productRepository;
     private final JwtProvider jwtProvider;
+    private final KocRepository kocRepository;
 
     @Override
     @Transactional
@@ -121,7 +126,7 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
             // cho phép truyền ISO-8601, ví dụ "2025-12-31T23:59:59"
             campaign.setExpiredAt(LocalDateTime.parse((String) updates.get("expiredAt")));
         }
-<<<<<<< Updated upstream
+
 
         // Nếu đang bật active mà đã quá hạn thì tự tắt, tránh "active ảo"
         if (Boolean.TRUE.equals(campaign.getActive())) {
@@ -134,11 +139,11 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
             }
         }
 
-=======
+
         if (updates.containsKey("active")) {
             campaign.setActive(Boolean.parseBoolean(updates.get("active").toString()));
         }
->>>>>>> Stashed changes
+
         return affiliateCampaignRepository.save(campaign);
     }
 
@@ -175,5 +180,25 @@ public class AffiliateCampaignServiceImpl implements AffiliateCampaignService {
         // if (ps.isEmpty()) return false;
 
         return true;
+    }
+
+    //KOC
+    private Long kocIdFromJwt(String jwt) {
+        String username = jwtProvider.getUsernameFromJwtToken(jwt);
+        return kocRepository.findByCustomer_Account_Username(username)
+                .orElseThrow(() -> new RuntimeException("KOC not found")).getId();
+    }
+
+    /** Trả về danh sách campaign Active mà KOC chưa đăng ký */
+    public Page<AffiliateCampaign> listActiveForKocNotRegistered(String jwt, Pageable pageable) {
+        Long kocId = kocIdFromJwt(jwt);
+        return affiliateCampaignRepository.findActiveNotRegisteredByKoc(kocId, LocalDateTime.now(), pageable);
+    }
+
+    /** Trả về danh sách campaign Active kèm myStatus (null nếu chưa đăng ký) */
+    public Page<CampaignDTO> listActiveWithMyStatus(String jwt, Pageable pageable) {
+        Long kocId = kocIdFromJwt(jwt);
+        return affiliateCampaignRepository.findActiveWithMyStatus(kocId, LocalDateTime.now(), pageable)
+                .map(p -> CampaignDTO.from(p.getCampaign(), p.getMyStatus()));
     }
 }

@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 public class CreateAffiliateLinkRequest {
 
-    @NotNull(message = "campaignId is required")
+
     private Long campaignId;       // bắt buộc
     private Long productId;        // nullable nếu tạo link cho toàn campaign
 

@@ -2,6 +2,8 @@ package com.zosh.repository;
 
 import com.zosh.domain.ProductStatus;
 import com.zosh.model.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Lock;
@@ -72,5 +74,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Product p set p.affiliateCampaign = null where p.affiliateCampaign.id = :campaignId")
     int detachCampaignFromProducts(@Param("campaignId") Long campaignId);
+
+    @Query("SELECT p FROM Product p WHERE p.affiliateCampaign.id = :campaignId AND p.in_stock = true")
+    Page<Product> findInStockByCampaign(@Param("campaignId") Long campaignId, Pageable pageable);
+
 }
 
