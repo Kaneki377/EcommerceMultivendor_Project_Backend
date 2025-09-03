@@ -31,4 +31,10 @@ public class CartItem {
     private Integer sellingPrice;
 
     private Long customerId;
+
+    // Affiliate tracking - track từng item có đến từ affiliate link không
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "affiliate_link_id")
+    @JsonIgnore // Tránh serialization issues với lazy loading
+    private AffiliateLink affiliateLink;
 }

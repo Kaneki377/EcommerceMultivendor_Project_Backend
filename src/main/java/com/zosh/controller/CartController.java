@@ -28,16 +28,14 @@ public class CartController {
     private final CustomerService customerService;
     private final ProductService productService;
 
-
     @GetMapping
     public ResponseEntity<Cart> findCustomerCartHandler(
-            @RequestHeader("Authorization") String jwt
-    ) throws CustomerException {
+            @RequestHeader("Authorization") String jwt) throws CustomerException {
         Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
         Cart cart = cartService.findCustomerCart(customer);
 
-        System.out.println("cart - "+ cart.getCustomer().getAccount().getEmail());
+        System.out.println("cart - " + cart.getCustomer().getAccount().getEmail());
 
         return new ResponseEntity<Cart>(cart, HttpStatus.OK);
     }
@@ -45,15 +43,20 @@ public class CartController {
     @PutMapping("/add")
     public ResponseEntity<CartItem> addItemToCart(
             @RequestBody AddItemRequest request,
-            @RequestHeader("Authorization") String jwt
-    ) throws ProductException, CustomerException {
+            @RequestHeader("Authorization") String jwt) throws ProductException, CustomerException {
         Customer customer = customerService.findCustomerProfileByJwt(jwt);
         Product product = productService.findProductById(request.getProductId());
+
+        System.out.println("🎯 Add to cart request: " + request);
+        System.out.println("📋 KOC Code: " + request.getKocCode());
+        System.out.println("📋 Campaign Code: " + request.getCampaignCode());
 
         CartItem item = cartService.addCartItem(
                 customer, product,
                 request.getSize(),
-                request.getQuantity());
+                request.getQuantity(),
+                request.getKocCode(),
+                request.getCampaignCode());
 
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setMessage("Item Added To Cart Successfully");
@@ -63,8 +66,7 @@ public class CartController {
     @DeleteMapping("/item/{cartItemId}")
     public ResponseEntity<ApiResponse> deleteCartItemHandler(
             @PathVariable Long cartItemId,
-            @RequestHeader("Authorization") String jwt
-    ) throws CartItemException, CustomerException {
+            @RequestHeader("Authorization") String jwt) throws CartItemException, CustomerException {
         Customer customer = customerService.findCustomerProfileByJwt(jwt);
         cartItemService.removeCartItem(customer.getId(), cartItemId);
 
@@ -78,12 +80,11 @@ public class CartController {
     public ResponseEntity<CartItem> updateCartItemHandler(
             @PathVariable Long cartItemId,
             @RequestBody CartItem cartItem,
-            @RequestHeader("Authorization") String jwt
-    ) throws CartItemException, CustomerException {
+            @RequestHeader("Authorization") String jwt) throws CartItemException, CustomerException {
         Customer customer = customerService.findCustomerProfileByJwt(jwt);
 
         CartItem updatedCartItem = null;
-        if(cartItem.getQuantity() > 0){
+        if (cartItem.getQuantity() > 0) {
             updatedCartItem = cartItemService.updateCartItem(
                     customer.getId(), cartItemId, cartItem);
         }

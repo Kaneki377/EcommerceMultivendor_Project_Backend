@@ -33,7 +33,6 @@ public class KocServiceImpl implements KocService {
 
     private final RoleRepository roleRepository;
 
-
     @Override
     public Koc createKoc(CreateKocRequest request) {
         Long customerId = request.getCustomerId();
@@ -55,7 +54,7 @@ public class KocServiceImpl implements KocService {
         // Tạo KOC
         Koc koc = new Koc();
         koc.setCustomer(customer);
-        koc.setKocId("KOC" + UUID.randomUUID().toString().substring(0, 8));
+        koc.setKocCode("KOC" + UUID.randomUUID().toString().substring(0, 8));
         koc.setFacebookLink(request.getFacebookLink());
         koc.setInstagramLink(request.getInstagramLink());
         koc.setTiktokLink(request.getTiktokLink());
@@ -63,13 +62,13 @@ public class KocServiceImpl implements KocService {
         koc.setJoinedAt(LocalDateTime.now());
 
         // Cập nhật customer + role
-        customer.setKoc(true);
+        customer.setKoc(false);
         Account account = customer.getAccount();
 
         account.setIsEnabled(true);
         customerRepository.save(customer);
-//        Role kocRole = roleRepository.findByName("ROLE_KOC");
-//        account.setRole(kocRole);
+        // Role kocRole = roleRepository.findByName("ROLE_KOC");
+        // account.setRole(kocRole);
         return kocRepository.save(koc);
     }
 
@@ -89,12 +88,15 @@ public class KocServiceImpl implements KocService {
                 k.getId(),
                 k.getCustomer().getFullName(),
                 k.getAccountStatus(),
-                k.getKocId(),
+                k.getKocCode(),
                 k.getCustomer().getId(),
                 k.getCustomer().getAccount() != null
                         ? k.getCustomer().getAccount().getEmail()
-                        : null
-        ));
+                        : null,
+                k.getFacebookLink(),
+                k.getInstagramLink(),
+                k.getTiktokLink(),
+                k.getYoutubeLink()));
     }
 
     @Override
@@ -104,7 +106,6 @@ public class KocServiceImpl implements KocService {
                 .orElseThrow(() -> new KocException("KOC not found"));
 
         koc.setAccountStatus(status);
-
         if (status == AccountStatus.ACTIVE) {
             Role kocRole = roleRepository.findByName("ROLE_KOC");
             koc.getCustomer().getAccount().setRole(kocRole);
@@ -116,5 +117,11 @@ public class KocServiceImpl implements KocService {
         }
 
         return kocRepository.save(koc);
+    }
+
+    @Override
+    public Koc getByCustomerId(Long customerId) {
+        return kocRepository.findByCustomer_Id(customerId)
+                .orElseThrow(() -> new KocException("KOC not found for customer " + customerId));
     }
 }

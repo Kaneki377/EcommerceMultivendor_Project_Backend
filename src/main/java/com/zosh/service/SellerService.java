@@ -19,7 +19,7 @@ public interface SellerService {
     Seller getSellerByUsername(String username) throws SellerException;
 
     Page<Seller> getAllSellers(AccountStatus status, Pageable pageable);
-    Seller updateSeller(Long id, Seller seller) throws SellerException;
+    Seller updateSeller(Long id, Seller sellerDTO) throws SellerException;
     void deleteSeller(Long id) throws SellerException;
     Seller verifyEmail(String email, String otp) throws SellerException;
     Seller updateSellerAccountStatus(Long sellerId, AccountStatus status , boolean restoreProducts) throws SellerException;

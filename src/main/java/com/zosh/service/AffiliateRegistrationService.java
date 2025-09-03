@@ -1,6 +1,7 @@
 package com.zosh.service;
 
 import com.zosh.dto.AffiliateRegistrationResponse;
+import com.zosh.dto.KocRegistrationDto;
 import com.zosh.dto.RegistrationApprovalResponse;
 import com.zosh.exceptions.KocException;
 import com.zosh.exceptions.SellerException;
@@ -18,5 +19,6 @@ public interface AffiliateRegistrationService {
 
     List<AffiliateRegistrationResponse> getMyRegistrations(String jwt) throws KocException;
 
-    List<AffiliateRegistration> getRegistrationsForMyCampaigns(String jwt) throws SellerException;
+    List<KocRegistrationDto> getRegistrationsForMyCampaigns(String jwt) throws SellerException;
+
 }

@@ -64,4 +64,3 @@ public class Product {
     @Column(name = "in_stock")
     private boolean in_stock = true;
 }
-

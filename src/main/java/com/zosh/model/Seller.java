@@ -10,6 +10,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "shop")
 public class Seller {
 
     @Id
@@ -20,9 +21,9 @@ public class Seller {
 
     private String mobile;
 
-    @OneToOne(cascade = CascadeType.ALL )
+    @OneToOne(cascade = CascadeType.ALL)
     @JsonBackReference
-    @JoinColumn(name = "account_id", unique = true,nullable = false)
+    @JoinColumn(name = "account_id", unique = true, nullable = false)
     private Account account;
 
     @Embedded
@@ -33,7 +34,6 @@ public class Seller {
 
     @OneToOne(cascade = CascadeType.ALL)
     private Address pickupAddress = new Address();
-
 
     private String taxCode;
 

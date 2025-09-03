@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
-
 @Entity
 @Getter
 @Setter
@@ -17,7 +16,7 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String  name;
+    private String name;
 
     @NotNull
     @Column(unique = true)

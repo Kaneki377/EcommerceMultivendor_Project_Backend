@@ -67,6 +67,7 @@ public class SellerController {
     @PostMapping
     public ResponseEntity<Seller> createSeller(@Valid @RequestBody SellerSignUpRequest req) throws Exception {
         // lưu seller vào DB
+
         Seller savedSeller = sellerService.createSeller(req);
 
         String otp = OtpUtils.generateOTP();

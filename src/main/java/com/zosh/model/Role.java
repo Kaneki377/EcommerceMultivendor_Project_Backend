@@ -18,8 +18,8 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    //Tesst commit
-    @Column(length = 50, nullable = false , unique = true)
+    // Tesst commit
+    @Column(length = 50, nullable = false, unique = true)
     private String name;
 
     public Role(String name) {

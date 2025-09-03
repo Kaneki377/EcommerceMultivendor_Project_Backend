@@ -22,9 +22,6 @@ public interface PaymentService {
 
     Boolean verifyStripePayment(String sessionId) throws StripeException, OrderException;
 
-    Boolean ProceedPaymentOrder(PaymentOrder paymentOrder,
-                                String paymentId,
-                                String paymentLinkId) throws StripeException;
     PaymentLinkResponse createStripePaymentLink(Customer customer,
                                                  Long amount, Long orderId) throws StripeException;
 
@@ -33,4 +30,10 @@ public interface PaymentService {
     Payment executePaypalPayment(String paymentId, String payerId) throws PayPalRESTException;
 
     void executeAndCompletePaypalOrder(Customer customer, String paymentId, String payerId, Long paymentOrderId) throws Exception;
+
+    //Complete Order for COD
+    void completePaymentForOrder(Order order) throws Exception;
+
+    //Subtract quantity in stock
+    void onPaymentSuccess(PaymentOrder paymentOrder) throws OrderException;
 }

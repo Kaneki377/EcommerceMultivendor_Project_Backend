@@ -8,4 +8,6 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
     List<Transaction> findBySellerId(Long sellerId);
+
+    List<Transaction> findByOrder_Id(Long orderId);
 }

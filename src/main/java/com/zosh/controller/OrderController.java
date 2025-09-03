@@ -13,6 +13,7 @@ import com.zosh.exceptions.SellerException;
 import com.zosh.model.*;
 import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
+import com.zosh.repository.ProductRepository;
 import com.zosh.request.PaypalCompletionRequest;
 import com.zosh.response.ApiResponse;
 import com.zosh.response.PaymentLinkResponse;
@@ -38,7 +39,7 @@ public class OrderController {
     private final OrderRepository orderRepository;
     private final TransactionService transactionService;
     private final OrderItemService orderItemService;
-
+    private final ProductRepository productRepository;
     //Tạo đơn hàng mới và tạo link thanh toán Stripe , Paypal
     @PostMapping()
     public ResponseEntity<PaymentLinkResponse> createOrderHandler(
@@ -76,7 +77,23 @@ public class OrderController {
             );
             res.setPayment_link_url(paymentUrl);
         }
-
+        else if (paymentMethod.equals(PaymentMethod.COD)) {
+            // COD
+            for (Order order : orders) {
+                order.getPaymentDetails().setPaymentMethod(PaymentMethod.COD);
+                order.setPaymentStatus(PaymentStatus.PENDING); // Chưa trả tiền
+                // ✅ trừ stock ngay khi tạo order
+                for (OrderItem item : order.getOrderItems()) {
+                    Product product = item.getProduct();
+                    product.setQuantity(product.getQuantity() - item.getQuantity());
+                    productRepository.save(product);
+                }
+                orderRepository.save(order);
+            }
+            // Với COD thì không cần payment link, chỉ trả về message
+            res.setPayment_link_url(null);
+            res.setPayment_link_id(null);
+        }
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
@@ -121,52 +138,12 @@ public class OrderController {
         SellerReport report = sellerReportService.getSellerReport(seller);
 
         report.setCanceledOrders(report.getCanceledOrders()+1);
-        report.setTotalRefunds(report.getTotalRefunds()+order.getTotalSellingPrice());
+        if (order.getPaymentStatus() == PaymentStatus.COMPLETED) {
+            report.setTotalRefunds(report.getTotalRefunds() + order.getTotalSellingPrice());
+        }
         sellerReportService.updateSellerReport(report);
 
         return ResponseEntity.ok(order);
-    }
-
-    //Stripe
-    @PutMapping("/payment-order/{paymentOrderId}/complete")
-    public ResponseEntity<ApiResponse> completePayment(
-            @PathVariable Long paymentOrderId, // Nhận paymentOrderId
-            @RequestHeader("Authorization") String jwt) throws Exception {
-
-        // 1. Xác thực người dùng
-        Customer customer = customerService.findCustomerProfileByJwt(jwt);
-
-        // 2. Tìm PaymentOrder
-        PaymentOrder paymentOrder = paymentService.getPaymentOrderById(paymentOrderId);
-
-        // Kiểm tra xem người dùng có quyền truy cập không
-        if (!paymentOrder.getCustomer().getId().equals(customer.getId())) {
-            throw new Exception("You do not have permission to update this payment order.");
-        }
-
-        // 3. Cập nhật trạng thái của PaymentOrder
-        paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
-        paymentOrderRepository.save(paymentOrder);
-
-        // 4. Lặp qua TẤT CẢ các Order con và cập nhật chúng
-        for (Order order : paymentOrder.getOrders()) {
-            order.setPaymentStatus(PaymentStatus.COMPLETED);
-            orderRepository.save(order);
-
-            // Tạo transaction và cập nhật report cho từng order
-            transactionService.createTransaction(order);
-            Seller seller = sellerService.getSellerById(order.getSellerId());
-            SellerReport report = sellerReportService.getSellerReport(seller);
-            report.setTotalOrders(report.getTotalOrders() + 1);
-            report.setTotalEarnings(report.getTotalEarnings() + order.getTotalSellingPrice());
-            report.setTotalSales(report.getTotalSales() + order.getOrderItems().size());
-            sellerReportService.updateSellerReport(report);
-        }
-
-        // 5. Trả về kết quả
-        ApiResponse res = new ApiResponse();
-        res.setMessage("Payment completed and all related orders have been updated.");
-        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     //Paypal

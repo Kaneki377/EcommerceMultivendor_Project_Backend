@@ -33,6 +33,6 @@ public class Address {
     @Enumerated(EnumType.STRING)
     private AddressOwnerType ownerType; // "pickup", "shipping", "home", ...
 
-    private Long ownerId;     // ID của chủ sở hữu địa chỉ (Customer, Seller, Store, ...)
+    private Long ownerId; // ID của chủ sở hữu địa chỉ (Customer, Seller, Store, ...)
 
 }

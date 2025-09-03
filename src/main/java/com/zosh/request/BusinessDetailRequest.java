@@ -10,7 +10,6 @@ public class BusinessDetailRequest {
     private String businessName;
 
 
-    @Email(message = "Email doanh nghiệp không hợp lệ")
     private String businessEmail;
 
     private String businessLicenseUrl;

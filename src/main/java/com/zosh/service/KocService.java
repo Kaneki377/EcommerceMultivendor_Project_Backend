@@ -11,4 +11,6 @@ public interface KocService {
     Koc getById(Long id);
     Page<KocDto> getAll(AccountStatus status, Pageable pageable);
     Koc updateStatus(Long id, AccountStatus status);
+    // ➕ thêm
+    Koc getByCustomerId(Long customerId);
 }

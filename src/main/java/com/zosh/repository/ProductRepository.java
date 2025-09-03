@@ -58,5 +58,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>,
     @Query("select p from Product p where p.id = :id")
     Optional<Product> lockById(@Param("id") Long id);
 
+    //xóa fk campaign
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Product p set p.affiliateCampaign = null where p.affiliateCampaign.id = :campaignId")
+    int unlinkCampaignFromProducts(@Param("campaignId") Long campaignId);
 }
 

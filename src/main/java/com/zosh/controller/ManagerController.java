@@ -32,9 +32,10 @@ public class ManagerController {
     private final HomeCategoryService homeCategoryService;
     private final KocService kocService;
     private final ProductRepository productRepository;
+
     @GetMapping("/profile")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<User>getUserProfile(@RequestHeader("Authorization") String jwt) throws UserException {
+    public ResponseEntity<User> getUserProfile(@RequestHeader("Authorization") String jwt) throws UserException {
         System.out.println("getUserProfile");
         User user = userService.findUserProfileByJwt(jwt);
         return new ResponseEntity<>(user, HttpStatus.OK);
@@ -44,19 +45,19 @@ public class ManagerController {
     public ResponseEntity<Seller> updateSellerStatus(
             @PathVariable Long id,
             @PathVariable AccountStatus status,
-            @RequestParam(name = "restoreProducts", defaultValue = "false") boolean restoreProducts)throws SellerException {
+            @RequestParam(name = "restoreProducts", defaultValue = "false") boolean restoreProducts)
+            throws SellerException {
 
-        Seller updatedSeller = sellerService.updateSellerAccountStatus(id,status, restoreProducts);
+        Seller updatedSeller = sellerService.updateSellerAccountStatus(id, status, restoreProducts);
         long activeCount = productRepository.countBySellerIdAndStatus(id, ProductStatus.ACTIVE);
         return ResponseEntity.ok(updatedSeller);
 
     }
 
     @GetMapping("/home-category")
-    public ResponseEntity<List<HomeCategory>> getHomeCategory(
-          ) throws Exception {
+    public ResponseEntity<List<HomeCategory>> getHomeCategory() throws Exception {
 
-        List<HomeCategory> categories=homeCategoryService.getAllHomeCategories();
+        List<HomeCategory> categories = homeCategoryService.getAllHomeCategories();
         return ResponseEntity.ok(categories);
 
     }
@@ -66,7 +67,7 @@ public class ManagerController {
             @PathVariable Long id,
             @RequestBody HomeCategory homeCategory) throws Exception {
 
-        HomeCategory updatedCategory=homeCategoryService.updateHomeCategory(homeCategory,id);
+        HomeCategory updatedCategory = homeCategoryService.updateHomeCategory(homeCategory, id);
         return ResponseEntity.ok(updatedCategory);
 
     }
@@ -83,6 +84,7 @@ public class ManagerController {
 
         return ResponseEntity.ok(result); // trả Page<Koc>
     }
+
     @GetMapping("/koc/{id}")
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<?> getKocById(@PathVariable Long id) {
@@ -102,13 +104,12 @@ public class ManagerController {
         dto.setId(koc.getId());
         dto.setName(koc.getCustomer().getFullName());
         dto.setAccountStatus(koc.getAccountStatus());
-        dto.setKocId(koc.getKocId());
+        dto.setKocCode(koc.getKocCode());
         dto.setCustomerId(koc.getCustomer() != null ? koc.getCustomer().getId() : null);
         dto.setEmail(
                 (koc.getCustomer() != null && koc.getCustomer().getAccount() != null)
                         ? koc.getCustomer().getAccount().getEmail()
-                        : null
-        );
+                        : null);
 
         return ResponseEntity.ok(dto);
     }

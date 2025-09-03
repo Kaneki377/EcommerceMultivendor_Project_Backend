@@ -18,11 +18,13 @@ import com.zosh.model.Order;
 import com.zosh.repository.CartRepository;
 import com.zosh.repository.OrderRepository;
 import com.zosh.repository.PaymentOrderRepository;
+import com.zosh.repository.ProductRepository;
 import com.zosh.response.PaymentLinkResponse;
 import com.zosh.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
@@ -40,17 +42,17 @@ public class PaymentServiceImpl implements PaymentService {
     private final SellerService sellerService;
     private final SellerReportService sellerReportService;
     private final CartRepository cartRepository;
-    private final OrderService orderService;
+    private final ProductRepository productRepository;
     @Value("${stripe.api.key}")
     private String stripeSecretKey;
 
     @Override
     public PaymentOrder createOrder(Customer customer, Set<Order> orders) {
         Long amount = orders.stream().mapToLong(Order::getTotalSellingPrice).sum();
-        int couponPrice=cartRepository.findByCustomerId(customer.getId()).getCouponPrice();
+        int couponPrice = cartRepository.findByCustomerId(customer.getId()).getCouponPrice();
 
         PaymentOrder paymentOrder = new PaymentOrder();
-        paymentOrder.setAmount(amount-couponPrice);
+        paymentOrder.setAmount(amount - couponPrice);
         paymentOrder.setCustomer(customer);
         paymentOrder.setOrders(orders);
 
@@ -60,8 +62,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentOrder getPaymentOrderById(Long orderId) throws Exception {
 
-        return paymentOrderRepository.findById(orderId).orElseThrow(()->
-                new Exception("Payment order not found"));
+        return paymentOrderRepository.findById(orderId).orElseThrow(() -> new Exception("Payment order not found"));
     }
 
     @Override
@@ -69,8 +70,8 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentOrder paymentOrder = paymentOrderRepository
                 .findByPaymentLinkId(paymentId);
 
-        if(paymentOrder==null){
-            throw new Exception("payment order not found with id "+paymentId);
+        if (paymentOrder == null) {
+            throw new Exception("payment order not found with id " + paymentId);
         }
         return paymentOrder;
     }
@@ -86,7 +87,8 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         PaymentOrder paymentOrder = paymentOrderRepository.findByPaymentLinkId(sessionId);
-        if (paymentOrder == null) return false;
+        if (paymentOrder == null)
+            return false;
 
         // Idempotent: chỉ xử lý nếu còn PENDING
         if (paymentOrder.getStatus() != PaymentOrderStatus.PENDING) {
@@ -94,8 +96,7 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         // Trừ kho + set order COMPLETED + clear cart... (tất cả trong @Transactional)
-        orderService.onPaymentSuccess(paymentOrder);
-
+        onPaymentSuccess(paymentOrder);
         paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
         paymentOrderRepository.save(paymentOrder);
 
@@ -103,41 +104,14 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Boolean ProceedPaymentOrder(PaymentOrder paymentOrder, String paymentId, String paymentLinkId) throws StripeException {
-        if (paymentOrder.getStatus().equals(PaymentOrderStatus.PENDING)) {
-
-            PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentId); // ID dạng pi_xxx
-
-            String status = paymentIntent.getStatus(); // e.g. "succeeded"
-            Long amountReceived = paymentIntent.getAmountReceived(); // số tiền nhận được
-
-            if ("succeeded".equals(status)) {
-                Set<Order> orders = paymentOrder.getOrders();
-                for (Order order : orders) {
-                    order.setPaymentStatus(PaymentStatus.COMPLETED);
-                    orderRepository.save(order);
-                }
-
-                paymentOrder.setStatus(PaymentOrderStatus.SUCCESS);
-                paymentOrderRepository.save(paymentOrder);
-                return true;
-            }
-
-            paymentOrder.setStatus(PaymentOrderStatus.FAILED);
-            paymentOrderRepository.save(paymentOrder);
-            return false;
-        }
-
-        return false;
-    }
-
-    @Override
-    public PaymentLinkResponse createStripePaymentLink(Customer customer, Long amount, Long orderId) throws StripeException {
+    public PaymentLinkResponse createStripePaymentLink(Customer customer, Long amount, Long orderId)
+            throws StripeException {
         Stripe.apiKey = stripeSecretKey;
-        double exchangeRate = 25000.0;
-
+        double exchangeRate = 27321;
+        // Làm tròn VND đến 1,000 gần nhất
+        long roundedVnd = Math.round(amount / 1000.0) * 1000;
         // Chuyển VND -> USD -> cent
-        long amountUsdInCents = Math.round((amount/ exchangeRate) * 100);
+        long amountUsdInCents = Math.round((roundedVnd / exchangeRate) * 100);
         SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -149,13 +123,12 @@ public class PaymentServiceImpl implements PaymentService {
                                 .setCurrency("usd")
                                 .setUnitAmount(amountUsdInCents)
                                 .setProductData(
-                                        SessionCreateParams
-                                                .LineItem.PriceData.ProductData
-                                        .builder().setName("Top up wallet")
-                                        .build()
-                                ).build()
-                        ).build()
-                ).build();
+                                        SessionCreateParams.LineItem.PriceData.ProductData
+                                                .builder().setName("Top up wallet")
+                                                .build())
+                                .build())
+                        .build())
+                .build();
 
         Session session = Session.create(params);
 
@@ -213,9 +186,9 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setPayer(payer);
         payment.setTransactions(Arrays.asList(transaction));
 
-
         String cancelUrl = "http://localhost:5173/payment/cancel"; // URL của frontend
-        String successUrl = "http://localhost:5173/payment/paypal/callback?paymentOrderId=" + paymentOrderId; // URL của backend
+        String successUrl = "http://localhost:5173/payment/paypal/callback?paymentOrderId=" + paymentOrderId; // URL của
+                                                                                                              // backend
 
         RedirectUrls redirectUrls = new RedirectUrls();
         redirectUrls.setCancelUrl(cancelUrl);
@@ -235,7 +208,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional // Đảm bảo tất cả các thao tác DB hoặc thành công hoặc rollback
-    public void executeAndCompletePaypalOrder(Customer customer, String paymentId, String payerId, Long paymentOrderId) throws Exception {
+    public void executeAndCompletePaypalOrder(Customer customer, String paymentId, String payerId, Long paymentOrderId)
+            throws Exception {
         // 1. Tìm PaymentOrder
         PaymentOrder paymentOrder = getPaymentOrderById(paymentOrderId);
 
@@ -281,6 +255,58 @@ public class PaymentServiceImpl implements PaymentService {
             paymentOrderRepository.save(paymentOrder);
             // Ném lại lỗi để controller có thể xử lý
             throw new Exception("Failed to execute PayPal payment: " + e.getMessage());
+        }
+    }
+
+    // complete order for Stripe,COD
+    @Override
+    @Transactional
+    public void completePaymentForOrder(Order order) throws Exception {
+        try {
+            // Tạo transaction (với duplicate check)
+            transactionService.createTransaction(order);
+
+            // Cập nhật seller report
+            Seller seller = sellerService.getSellerById(order.getSellerId());
+            SellerReport report = sellerReportService.getSellerReport(seller);
+
+            report.setTotalOrders(report.getTotalOrders() + 1);
+            report.setTotalEarnings(report.getTotalEarnings() + order.getTotalSellingPrice());
+            report.setTotalSales(report.getTotalSales() + order.getTotalItem());
+
+            sellerReportService.updateSellerReport(report);
+
+            // Cập nhật trạng thái đơn hàng
+            order.setPaymentStatus(PaymentStatus.COMPLETED);
+            orderRepository.save(order);
+
+            System.out.println("✅ Payment completed successfully for order: " + order.getId());
+        } catch (Exception e) {
+            System.err.println("❌ Error completing payment for order " + order.getId() + ": " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    // trừ kho
+    @Transactional(propagation = Propagation.MANDATORY)
+    @Override
+    public void onPaymentSuccess(PaymentOrder paymentOrder) throws OrderException {
+        for (Order order : paymentOrder.getOrders()) {
+            for (OrderItem item : order.getOrderItems()) {
+                Product product = productRepository.lockById(item.getProduct().getId())
+                        .orElseThrow(() -> new RuntimeException("Product not found"));
+
+                int newQty = product.getQuantity() - item.getQuantity();
+                if (newQty < 0)
+                    throw new RuntimeException("Out of stock");
+
+                product.setQuantity(newQty);
+                product.setIn_stock(newQty > 0);
+                productRepository.save(product);
+            }
+            order.setPaymentStatus(PaymentStatus.COMPLETED);
+            orderRepository.save(order);
         }
     }
 }

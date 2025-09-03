@@ -11,11 +11,15 @@ public class AffiliateRegistrationResponse {
     private Long id;
     private Long campaignId;
     private String campaignTitle;
+    private String campaignDescription; // optional
+    private Double commissionPercent; // optional
+    private LocalDateTime startedAt; // campaign.createdAt
+    private LocalDateTime expiredAt; // campaign.expiredAt
     private LocalDateTime registeredAt;
     private RegistrationStatus status;
 
     public AffiliateRegistrationResponse(Long id, Long campaignId, String campaignTitle,
-                                         LocalDateTime registeredAt, RegistrationStatus status) {
+            LocalDateTime registeredAt, RegistrationStatus status) {
         this.id = id;
         this.campaignId = campaignId;
         this.campaignTitle = campaignTitle;

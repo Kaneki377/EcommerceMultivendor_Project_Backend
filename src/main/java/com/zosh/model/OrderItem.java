@@ -32,4 +32,13 @@ public class OrderItem {
     private Integer sellingPrice;
 
     private Long customerId;
+
+    // Affiliate tracking - track từng item có đến từ affiliate link không
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "affiliate_link_id")
+    private AffiliateLink affiliateLink;
+
+    // Tạm thời giữ field này để tránh lỗi database (sẽ xóa sau)
+    @Column(name = "commission_amount")
+    private Long commissionAmount;
 }

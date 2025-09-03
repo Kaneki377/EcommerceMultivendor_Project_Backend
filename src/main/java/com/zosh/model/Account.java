@@ -21,14 +21,13 @@ public class Account {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "email", nullable = false, length = 100,unique = true)
+    @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
-
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Column(name = "username", nullable = false, length = 50 , unique = true)
+    @Column(name = "username", nullable = false, length = 50, unique = true)
     private String username;
 
     private Date createdAt;

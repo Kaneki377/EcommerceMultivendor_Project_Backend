@@ -42,17 +42,19 @@ public class SellerServiceImpl implements SellerService {
 
     @Override
     public Seller createSeller(SellerSignUpRequest req) throws SellerException {
-        // Convert từ req sang Seller + Account + BusinessDetail + BankDetail + Address
-        // 1. Lấy username và email từ request
+        // 1. Validate username + email
         String username = req.getAccount().getUsername();
         String email = req.getAccount().getEmail();
 
-        // 2. Kiểm tra trùng username
         if (accountRepository.findByUsername(username) != null) {
             throw new SellerException("Username đã tồn tại! Vui lòng dùng username khác");
         }
 
-        // 3. Account mới
+        if (accountRepository.findByEmail(email) != null) {
+            throw new SellerException("Email đã tồn tại! Vui lòng dùng email khác");
+        }
+
+        // 2. Tạo Account mới (không dùng trực tiếp req.getAccount())
         Account account = new Account();
         account.setUsername(username);
         account.setEmail(email);
@@ -60,23 +62,27 @@ public class SellerServiceImpl implements SellerService {
         account.setRole(roleRepository.findByName(USER_ROLE.ROLE_SELLER.name()));
         account.setCreatedAt(new Date());
         account.setIsEnabled(true);
-        account = accountRepository.save(account);
 
-        // 3. Lưu địa chỉ nhận hàng
-        Address pickupAddress = SellerMapper.toAddress(req.getPickupAddress());
-        pickupAddress.setOwnerType(AddressOwnerType.PICKUP);
-        Address savedAddress = addressRepository.save(pickupAddress);
-
-        //Seller mới
+        // 3. Tạo Seller mới
         Seller newSeller = new Seller();
         newSeller.setAccount(account);
-        pickupAddress.setOwnerId(newSeller.getId());
+        account.setSeller(newSeller); // nếu 2 chiều
+
         newSeller.setSellerName(req.getSellerName());
         newSeller.setMobile(req.getMobile());
-        newSeller.setPickupAddress(savedAddress);
         newSeller.setTaxCode(req.getTaxCode());
+
+        // 4. Lưu pickup address
+        Address pickupAddress = SellerMapper.toAddress(req.getPickupAddress());
+        pickupAddress.setOwnerType(AddressOwnerType.PICKUP);
+        // chưa có sellerId nên save sau khi persist Seller
+        newSeller.setPickupAddress(pickupAddress);
+
+        // 5. Lưu bank + business detail
         newSeller.setBankDetails(SellerMapper.toBankDetails(req.getBankDetails()));
         newSeller.setBusinessDetails(SellerMapper.toBusinessDetails(req.getBusinessDetails()));
+
+        // 6. Persist: nhờ cascade ALL nên account cũng sẽ được persist
         return sellerRepository.save(newSeller);
     }
 

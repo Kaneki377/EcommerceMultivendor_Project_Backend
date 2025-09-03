@@ -2,12 +2,16 @@ package com.zosh.service.impl;
 
 import com.zosh.exceptions.ReviewNotFoundException;
 import com.zosh.model.Customer;
+import com.zosh.model.OrderItem;
 import com.zosh.model.Product;
 import com.zosh.model.Review;
+import com.zosh.repository.OrderItemRepository;
+import com.zosh.repository.OrderRepository;
 import com.zosh.repository.ReviewRepository;
 import com.zosh.request.CreateReviewRequest;
 import com.zosh.service.ReviewService;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 
 import javax.naming.AuthenticationException;
@@ -18,9 +22,16 @@ import java.util.List;
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
-
+    private  final OrderItemRepository orderItemRepository;
     @Override
-    public Review createReview(CreateReviewRequest request, Customer customer, Product product) {
+    public Review createReview(CreateReviewRequest request, Customer customer, Product product) throws ReviewNotFoundException {
+        if (!orderItemRepository.customerArrivedOrderForProduct(customer.getId(), product.getId())) {
+            throw new ReviewNotFoundException("You can only review after delivery");
+        }
+        if (reviewRepository.existsByCustomer_IdAndProduct_Id(customer.getId(), product.getId())) {
+            throw new ReviewNotFoundException("You already reviewed this product");
+        }
+
         Review newReview = new Review();
 
         newReview.setReviewText(request.getReviewText());

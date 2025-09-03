@@ -19,11 +19,13 @@ public interface OrderService {
     //Get ShopOrder
     List<Order> sellersOrder(Long sellerId);
 
-    Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws OrderException;
+    Order updateOrderStatus(long orderId, OrderStatus orderStatus) throws OrderException, Exception;
 
     Order cancelOrder(long orderId, Customer customer) throws OrderException;
 
     public void deleteOrder(Long orderId) throws OrderException;
 
-    void onPaymentSuccess(PaymentOrder paymentOrder) throws OrderException;
+
+
+
 }

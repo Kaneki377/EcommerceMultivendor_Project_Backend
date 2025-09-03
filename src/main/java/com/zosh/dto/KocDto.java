@@ -12,7 +12,11 @@ public class KocDto {
     Long id;
     String name;
     AccountStatus accountStatus;
-    String kocId;
+    String kocCode;
     Long customerId;
     String email;
+    String facebookLink;
+    String instagramLink;
+    String tiktokLink;
+    String youtubeLink;
 }

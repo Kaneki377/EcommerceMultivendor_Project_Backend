@@ -22,51 +22,54 @@ import java.util.Collections;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class AppConfig {
-    //Thiết lập chế độ stateless (không dùng session) , Bảo vệ các API /api/** bằng JWT
-    //Cho phép truy cập công khai một số endpoint
+    // Thiết lập chế độ stateless (không dùng session) , Bảo vệ các API /api/** bằng
+    // JWT
+    // Cho phép truy cập công khai một số endpoint
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource) throws Exception {
-        http.sessionManagement(management->management.sessionCreationPolicy(
-                SessionCreationPolicy.STATELESS
-        )).authorizeHttpRequests(authorize->authorize
+    SecurityFilterChain securityFilterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource)
+            throws Exception {
+        http.sessionManagement(management -> management.sessionCreationPolicy(
+                SessionCreationPolicy.STATELESS)).authorizeHttpRequests(authorize -> authorize
 
-                .requestMatchers("/api/products/*/reviews").permitAll()
-                .requestMatchers("/api/koc/create").hasAnyRole("CUSTOMER", "MANAGER")
-                .requestMatchers("/api/koc/**").authenticated() // Dựa vào @PreAuthorize
-                .requestMatchers("/api/**").authenticated() //bắt buộc yêu cầu phải đã xác thực.
+                        .requestMatchers("/api/products/*/reviews").permitAll()
+                        .requestMatchers("/api/affiliate-campaign/active").permitAll()
+//                        .requestMatchers("/api/koc/create").hasAnyRole("CUSTOMER", "MANAGER")
+                        .requestMatchers("/api/koc/**").authenticated() // Dựa vào @PreAuthorize
+                        .requestMatchers("/api/**").authenticated() // bắt buộc yêu cầu phải đã xác thực.
 
-                .anyRequest().permitAll()
-        ).addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
-                .csrf(csrf->csrf.disable())
-                .cors(cors->cors.configurationSource(corsConfigurationSource()));
+                        .anyRequest().permitAll())
+                .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
         return http.build();
     }
 
-    //cấu hình CORS để cho phép frontend từ bất kỳ domain nào gọi API
+    // cấu hình CORS để cho phép frontend từ bất kỳ domain nào gọi API
     private CorsConfigurationSource corsConfigurationSource() {
-       return new CorsConfigurationSource(){
-           @Override
-           public CorsConfiguration getCorsConfiguration(HttpServletRequest request){
-               CorsConfiguration cfg = new CorsConfiguration();
-               cfg.setAllowedOrigins(Arrays.asList("https://zosh-bazzar-zosh.vercel.app",
-                       "http://localhost:3000",
-                       "http://localhost:5173"));
-               cfg.setAllowedMethods(Collections.singletonList("*"));  //Cho phép tất cả phương thức HTTP
-               cfg.setAllowedHeaders(Collections.singletonList("*"));
-               cfg.setAllowCredentials(true);                           // Cho phép gửi cookie or token (credentials)
-               cfg.setExposedHeaders(Collections.singletonList("Authorization"));
-               cfg.setMaxAge(3600L);
-               return cfg;
-           }
-       };
+        return new CorsConfigurationSource() {
+            @Override
+            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                CorsConfiguration cfg = new CorsConfiguration();
+                cfg.setAllowedOrigins(Arrays.asList("https://zosh-bazzar-zosh.vercel.app",
+                        "http://localhost:3000",
+                        "http://localhost:5173"));
+                cfg.setAllowedMethods(Collections.singletonList("*")); // Cho phép tất cả phương thức HTTP
+                cfg.setAllowedHeaders(Collections.singletonList("*"));
+                cfg.setAllowCredentials(true); // Cho phép gửi cookie or token (credentials)
+                cfg.setExposedHeaders(Collections.singletonList("Authorization"));
+                cfg.setMaxAge(3600L);
+                return cfg;
+            }
+        };
     }
 
     @Bean
-    PasswordEncoder passwordEncoder(){
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
-    public RestTemplate restTemplate(){
+    public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 }

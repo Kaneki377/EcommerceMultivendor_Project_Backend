@@ -6,11 +6,15 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "affiliate_registration")
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(
+        name = "affiliate_registration",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"campaign_id", "koc_id"})
+)
 public class AffiliateRegistration {
 
     @Id

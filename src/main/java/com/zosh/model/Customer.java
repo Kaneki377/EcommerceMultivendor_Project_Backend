@@ -24,9 +24,9 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    private String email;
-//    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-//    private String password;
+    // private String email;
+    // @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    // private String password;
 
     private String fullName;
 
@@ -37,11 +37,11 @@ public class Customer {
     private Gender gender;
 
     @Column(name = "dob")
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    // @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private LocalDate dob;
 
-    @OneToOne(cascade = CascadeType.ALL )
-    @JoinColumn(name = "account_id", unique = true,nullable = false)
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "account_id", unique = true, nullable = false)
     @JsonBackReference
     private Account account;
 
@@ -49,14 +49,9 @@ public class Customer {
     private Set<Address> addresses = new HashSet<>();
 
     @ManyToMany
-    @JoinTable(
-            name = "customer_coupons",
-            joinColumns = @JoinColumn(name = "customerId"),
-            inverseJoinColumns = @JoinColumn(name = "couponId")
-    )
+    @JoinTable(name = "customer_coupons", joinColumns = @JoinColumn(name = "customerId"), inverseJoinColumns = @JoinColumn(name = "couponId"))
     @JsonIgnore
     private Set<Coupon> usedCoupons = new HashSet<>();
 
     private boolean isKoc = false;
 }
-

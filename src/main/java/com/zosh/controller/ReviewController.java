@@ -2,6 +2,7 @@ package com.zosh.controller;
 
 import com.zosh.exceptions.CustomerException;
 import com.zosh.exceptions.ProductException;
+import com.zosh.exceptions.ReviewNotFoundException;
 import com.zosh.model.Customer;
 import com.zosh.model.Product;
 import com.zosh.model.Review;
@@ -40,7 +41,7 @@ public class ReviewController {
     public ResponseEntity<Review> writeReview(
             @RequestBody CreateReviewRequest req,
             @PathVariable Long productId,
-            @RequestHeader("Authorization") String jwt) throws CustomerException, ProductException {
+            @RequestHeader("Authorization") String jwt) throws CustomerException, ProductException, ReviewNotFoundException {
 
         Customer customer = customerService.findCustomerProfileByJwt(jwt);
         Product product = productService.findProductById(productId);

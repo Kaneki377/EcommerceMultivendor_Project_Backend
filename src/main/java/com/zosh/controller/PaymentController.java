@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -67,18 +69,10 @@ public class PaymentController {
         }
 
         PaymentOrder paymentOrder = paymentService.getPaymentOrderByPaymentId(sessionId);
+
         for (Order order : paymentOrder.getOrders()) {
-            transactionService.createTransaction(order);
 
-            Seller seller = sellerService.getSellerById(order.getSellerId());
-            SellerReport report = sellerReportService.getSellerReport(seller);
-            report.setTotalOrders(report.getTotalOrders() + 1);
-            report.setTotalEarnings(report.getTotalEarnings() + order.getTotalSellingPrice());
-            report.setTotalSales(report.getTotalSales() + order.getOrderItems().size());
-            sellerReportService.updateSellerReport(report);
-
-            order.setPaymentStatus(PaymentStatus.COMPLETED);
-            orderRepository.save(order);
+            paymentService.completePaymentForOrder(order);
         }
 
         Cart cart = cartRepository.findByCustomerId(customer.getId());

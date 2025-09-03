@@ -9,4 +9,8 @@ public class AddItemRequest {
     private int quantity;
     private Long productId;
 
+    // Affiliate tracking parameters
+    private String kocCode;
+    private String campaignCode;
+
 }

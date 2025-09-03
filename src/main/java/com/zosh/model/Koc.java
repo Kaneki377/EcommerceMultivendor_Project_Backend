@@ -17,8 +17,8 @@ public class Koc {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "koc_id", unique = true, nullable = false)
-    private String kocId;
+    @Column(name = "koc_code", unique = true, nullable = false)
+    private String kocCode;
 
     @Enumerated(EnumType.STRING)
     private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;

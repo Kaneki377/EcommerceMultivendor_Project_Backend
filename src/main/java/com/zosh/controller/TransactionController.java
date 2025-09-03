@@ -31,6 +31,7 @@ public class TransactionController {
         Transaction transaction = transactionService.createTransaction(order);
         return ResponseEntity.ok(transaction);
     }
+
     @GetMapping("/seller")
     public ResponseEntity<List<Transaction>> getTransactionBySeller(
             @RequestHeader("Authorization") String jwt) throws Exception {

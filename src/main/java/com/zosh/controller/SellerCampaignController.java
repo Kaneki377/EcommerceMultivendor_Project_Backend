@@ -1,14 +1,11 @@
 package com.zosh.controller;
 
-import com.zosh.dto.AffiliateRegistrationResponse;
-import com.zosh.dto.RegistrationApprovalResponse;
 import com.zosh.exceptions.SellerException;
 import com.zosh.model.AffiliateCampaign;
-import com.zosh.model.AffiliateRegistration;
+import com.zosh.model.Product;
 import com.zosh.model.Seller;
 import com.zosh.request.CreateAffiliateCampaignRequest;
 import com.zosh.service.AffiliateCampaignService;
-import com.zosh.service.AffiliateRegistrationService;
 import com.zosh.service.SellerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +23,9 @@ import java.util.Map;
 public class SellerCampaignController {
 
     private final SellerService sellerService;
-    private final AffiliateRegistrationService registrationService;
     private final AffiliateCampaignService affiliateCampaignService;
 
-    //Seller tạo chiến dịch
+    // Seller tạo chiến dịch
     @PostMapping("/campaigns")
     @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<AffiliateCampaign> createAffiliateCampaign(
@@ -41,14 +37,16 @@ public class SellerCampaignController {
         AffiliateCampaign campaign = affiliateCampaignService.createCampaign(seller.getId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(campaign);
     }
-    //Seller xem các chiến dịch đã tạo
+
+    // Seller xem các chiến dịch đã tạo
     @GetMapping("/campaigns")
     @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<List<AffiliateCampaign>> getMyCampaigns(
             @RequestHeader("Authorization") String jwt) throws SellerException {
         return ResponseEntity.ok(affiliateCampaignService.getCampaignsBySeller(jwt));
     }
-    //Seller cập nhật chiến dịch
+
+    // Seller cập nhật chiến dịch
     @PatchMapping("/campaigns/{id}")
     @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<AffiliateCampaign> partialUpdateCampaign(
@@ -60,7 +58,8 @@ public class SellerCampaignController {
         AffiliateCampaign updated = affiliateCampaignService.partialUpdate(id, seller.getId(), updates);
         return ResponseEntity.ok(updated);
     }
-    //Seller xóa chiến dịch
+
+    // Seller xóa chiến dịch
     @DeleteMapping("/campaigns/{id}")
     @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<?> deleteCampaign(
@@ -73,34 +72,15 @@ public class SellerCampaignController {
         return ResponseEntity.ok().body("Campaign deleted successfully");
     }
 
-    // SELLER xem các Koc đăng ký  chiến dịch của mình
-    @GetMapping("/campaign-registrations")
+    // Seller xem danh sách sản phẩm trong campaign
+    @GetMapping("/campaigns/{id}/products")
     @PreAuthorize("hasRole('SELLER')")
-    public ResponseEntity<List<AffiliateRegistration>> getRegistrationsForMyCampaigns(
-            @RequestHeader("Authorization") String jwt) throws SellerException {
+    public ResponseEntity<List<Product>> getCampaignProducts(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String jwt) throws Exception {
 
-        List<AffiliateRegistration> list = registrationService.getRegistrationsForMyCampaigns(jwt);
-        return ResponseEntity.ok(list);
+        List<Product> products = affiliateCampaignService.getCampaignProducts(id, jwt);
+        return ResponseEntity.ok(products);
     }
 
-    // SELLER duyệt KOC
-    @PutMapping("/affiliate-registrations/approve/{registrationId}")
-    @PreAuthorize("hasRole('SELLER')")
-    public ResponseEntity<RegistrationApprovalResponse> approveRegistration(
-            @PathVariable Long registrationId,
-            @RequestHeader("Authorization") String jwt) throws SellerException {
-
-        RegistrationApprovalResponse registration = registrationService.approveRegistration(registrationId, jwt);
-        return ResponseEntity.ok(registration);
-    }
-    // SELLER từ chối KOC
-    @PutMapping("/affiliate-registrations/reject/{registrationId}")
-    @PreAuthorize("hasRole('SELLER')")
-    public ResponseEntity<RegistrationApprovalResponse> rejectRegistration(
-            @PathVariable Long registrationId,
-            @RequestHeader("Authorization") String jwt) throws SellerException {
-
-        RegistrationApprovalResponse registration = registrationService.rejectRegistration(registrationId, jwt);
-        return ResponseEntity.ok(registration);
-    }
 }

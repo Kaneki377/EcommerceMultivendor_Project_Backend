@@ -5,11 +5,11 @@ import lombok.Data;
 @Data
 public class BusinessDetails {
 
-    private String businessLicenseUrl;
     private String businessName;
     private String businessEmail;
     private String businessMobile;
     private String businessAddress;
+    private String businessLicenseUrl;
     private String logo;
     private String banner;
 }
